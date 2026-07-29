@@ -144,7 +144,49 @@ SMALL_CAP = [
 ]
 
 ETF = [
-    ("VXUS", "Vanguard Total Intl. Stock ETF", "Intl. Equity"),
+    # U.S. Broad Market
+    ("SPY",  "SPDR S&P 500 ETF",                "U.S. Broad Market"),
+    ("VOO",  "Vanguard S&P 500 ETF",             "U.S. Broad Market"),
+    ("VTI",  "Vanguard Total Stock Market ETF",   "U.S. Broad Market"),
+    ("QQQ",  "Invesco QQQ (Nasdaq-100)",          "U.S. Broad Market"),
+    ("DIA",  "SPDR Dow Jones Industrial Avg ETF", "U.S. Broad Market"),
+    ("IWM",  "iShares Russell 2000 ETF",          "U.S. Broad Market"),
+    ("MDY",  "SPDR S&P MidCap 400 ETF",           "U.S. Broad Market"),
+    # Sectors
+    ("XLK",  "Technology Select Sector SPDR",     "Sector"),
+    ("XLF",  "Financial Select Sector SPDR",      "Sector"),
+    ("XLV",  "Health Care Select Sector SPDR",    "Sector"),
+    ("XLE",  "Energy Select Sector SPDR",         "Sector"),
+    ("XLI",  "Industrial Select Sector SPDR",     "Sector"),
+    ("XLY",  "Consumer Discret. Select Sector",   "Sector"),
+    ("XLP",  "Consumer Staples Select Sector",    "Sector"),
+    ("XLU",  "Utilities Select Sector SPDR",      "Sector"),
+    ("SOXX", "iShares Semiconductor ETF",         "Sector"),
+    # International
+    ("VXUS", "Vanguard Total Intl. Stock ETF",    "International"),
+    ("VEA",  "Vanguard Developed Markets ETF",    "International"),
+    ("VWO",  "Vanguard Emerging Markets ETF",     "International"),
+    ("EEM",  "iShares MSCI Emerging Markets ETF", "International"),
+    ("IEMG", "iShares Core MSCI Emerging Mkts",  "International"),
+    # Fixed Income
+    ("TLT",  "iShares 20+ Year Treasury Bond",    "Fixed Income"),
+    ("IEF",  "iShares 7-10 Year Treasury Bond",   "Fixed Income"),
+    ("HYG",  "iShares High Yield Corporate Bond", "Fixed Income"),
+    ("LQD",  "iShares IG Corporate Bond ETF",     "Fixed Income"),
+    # Commodities
+    ("GLD",  "SPDR Gold Shares",                  "Commodities"),
+    ("IAU",  "iShares Gold Trust",                "Commodities"),
+    ("SLV",  "iShares Silver Trust",              "Commodities"),
+    # Dividend / Income
+    ("SCHD", "Schwab US Dividend Equity ETF",     "Dividend"),
+    ("VYM",  "Vanguard High Dividend Yield ETF",  "Dividend"),
+    ("NOBL", "ProShares S&P 500 Div. Aristocrats","Dividend"),
+    ("CGDV", "Capital Group Dividend Value ETF",  "Dividend"),
+    # Thematic
+    ("ARKK", "ARK Innovation ETF",               "Thematic"),
+    ("BOTZ", "Global X Robotics & AI ETF",        "Thematic"),
+    ("CIBR", "First Trust Nasdaq Cybersecurity",  "Thematic"),
+    ("VNQ",  "Vanguard Real Estate ETF",          "Thematic"),
 ]
 
 ALL_TIERS = [

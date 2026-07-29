@@ -225,16 +225,14 @@ for tier_name, stocks in ALL_TIERS:
             else:                  category = "extended"
 
             mc_str = "N/A"
-            w52h = w52l = None
             years_public = None
             pays_div = False
+            pe_ratio = None
             try:
                 fi   = stock.fast_info
                 mc   = getattr(fi, 'market_cap', None)
                 if mc:
                     mc_str = f"${mc/1e12:.2f}T" if mc >= 1e12 else f"${mc/1e9:.0f}B"
-                w52h = round(float(fi.fifty_two_week_high), 2) if hasattr(fi, 'fifty_two_week_high') else None
-                w52l = round(float(fi.fifty_two_week_low),  2) if hasattr(fi, 'fifty_two_week_low')  else None
 
                 # Years public
                 try:
@@ -253,6 +251,17 @@ for tier_name, stocks in ALL_TIERS:
                 except:
                     pass
 
+            except:
+                pass
+
+            # PE ratio (trailing; fallback to forward)
+            try:
+                info_data = stock.info
+                pe = info_data.get('trailingPE')
+                if pe is None or float(pe) <= 0:
+                    pe = info_data.get('forwardPE')
+                if pe is not None and float(pe) > 0:
+                    pe_ratio = round(float(pe), 1)
             except:
                 pass
 
@@ -289,8 +298,7 @@ for tier_name, stocks in ALL_TIERS:
                 "wma200":      round(wma_val, 2),
                 "pct_diff":    round(pct_diff, 2),
                 "category":    category,
-                "week52_high": w52h,
-                "week52_low":  w52l,
+                "pe_ratio":    pe_ratio,
                 "market_cap":  mc_str,
                 "weeks_data":  len(hist),
                 "full_200wma": len(hist) >= 200,
@@ -335,6 +343,15 @@ def bar_html(pct):
         f'</div></div>'
     )
 
+def pe_cell(pe):
+    if pe is None or pe <= 0:
+        return '<td class="num pe-col muted">—</td>'
+    if   pe < 15: c = "#26de81"   # green  — value
+    elif pe < 25: c = "#e6edf3"   # white  — fair
+    elif pe < 40: c = "#fed330"   # yellow — growth premium
+    else:         c = "#ff9f43"   # orange — expensive
+    return f'<td class="num pe-col" style="color:{c}" title="P/E Ratio">{pe:.1f}x</td>'
+
 def div_badge_html(ticker, pays_div):
     if ticker in DIVIDEND_ARISTOCRATS:
         return '<span class="div-badge aristocrat" title="Dividend Aristocrat — 25+ consecutive years of dividend increases">👑</span>'
@@ -361,9 +378,6 @@ def build_tier_html(tier_name, results):
     rows_html = ""
     for r in results:
         note  = "" if r['full_200wma'] else '<sup class="warn" title="&lt;200 weeks of data">†</sup>'
-        w52   = ""
-        if r['week52_high'] and r['week52_low']:
-            w52 = f"${r['week52_low']:,.2f} – ${r['week52_high']:,.2f}"
 
         cat_c, cat_bg = CAT_COLORS[r['category']]
         cat_lbl = CAT_LABELS[r['category']].split(" ",1)[1]
@@ -389,7 +403,7 @@ def build_tier_html(tier_name, results):
       <td class="bar-td">{bar_html(r['pct_diff'])}</td>
       <td><span class="cat-badge" style="color:{cat_c};background:{cat_bg};border:1px solid {cat_c}40">{cat_lbl}</span></td>
       <td class="num muted mc">{r['market_cap']}</td>
-      <td class="muted w52">{w52}</td>
+      {pe_cell(r['pe_ratio'])}
     </tr>
     <tr class="chart-row" id="chart-{ticker_safe}" style="display:none">
       <td colspan="12">
@@ -421,7 +435,7 @@ def build_tier_html(tier_name, results):
             <th class="num">Yrs Public</th><th>Div</th>
             <th class="num">Price</th><th class="num">200-WMA</th>
             <th class="num">vs 200-WMA</th><th>Position</th>
-            <th>Status</th><th class="num">Mkt Cap</th><th>52-Wk Range</th>
+            <th>Status</th><th class="num">Mkt Cap</th><th class="num">P/E Ratio</th>
           </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -644,7 +658,7 @@ footer {{
 
 @media (max-width:768px) {{
   header, .stats, main, .strategy, .tier-nav {{ padding-left:14px; padding-right:14px }}
-  .mc, .w52, .yrs-pub {{ display:none }}
+  .mc, .pe-col, .yrs-pub {{ display:none }}
   .bar-td {{ display:none }}
 }}
 </style>

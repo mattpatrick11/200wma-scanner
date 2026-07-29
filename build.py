@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-200-Week Moving Average Stock Scanner — v2
+200-Week Moving Average Stock Scanner — v3
 Large/Mid/Small Cap · Embedded Charts · GitHub Dark Theme
+175 stocks · Years-Public column · Dividend / Aristocrat badges
 """
 
 import subprocess, sys
@@ -11,108 +12,120 @@ for pkg in ['yfinance', 'pandas']:
 
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 import time, json, math
 
 # ── Stock Universe ─────────────────────────────────────────────────────────────
 
 LARGE_CAP = [
-    ("AAPL",  "Apple Inc.",              "Technology"),
-    ("MSFT",  "Microsoft Corp.",         "Technology"),
-    ("GOOGL", "Alphabet Inc.",           "Technology"),
-    ("META",  "Meta Platforms",          "Technology"),
-    ("NVDA",  "NVIDIA Corp.",            "Technology"),
-    ("AVGO",  "Broadcom Inc.",           "Technology"),
-    ("ADBE",  "Adobe Inc.",              "Technology"),
-    ("CRM",   "Salesforce Inc.",         "Technology"),
-    ("TXN",   "Texas Instruments",       "Technology"),
-    ("AMD",   "Adv. Micro Devices",      "Technology"),
-    ("ASML",  "ASML Holding",            "Technology"),
-    ("TSM",   "Taiwan Semiconductor",    "Technology"),
-    ("INTC",  "Intel Corp.",             "Technology"),
-    ("QCOM",  "Qualcomm Inc.",           "Technology"),
-    ("IBM",   "IBM Corp.",               "Technology"),
-    ("AMZN",  "Amazon.com Inc.",         "Cons. Discretionary"),
-    ("TSLA",  "Tesla Inc.",              "Cons. Discretionary"),
-    ("MCD",   "McDonald's Corp.",        "Cons. Discretionary"),
-    ("NKE",   "Nike Inc.",               "Cons. Discretionary"),
-    ("HD",    "Home Depot Inc.",         "Cons. Discretionary"),
-    ("SBUX",  "Starbucks Corp.",         "Cons. Discretionary"),
-    ("PG",    "Procter & Gamble",        "Consumer Staples"),
-    ("KO",    "Coca-Cola Co.",           "Consumer Staples"),
-    ("PEP",   "PepsiCo Inc.",            "Consumer Staples"),
-    ("COST",  "Costco Wholesale",        "Consumer Staples"),
-    ("WMT",   "Walmart Inc.",            "Consumer Staples"),
-    ("BRK-B", "Berkshire Hathaway B",    "Financials"),
-    ("JPM",   "JPMorgan Chase",          "Financials"),
-    ("V",     "Visa Inc.",               "Financials"),
-    ("MA",    "Mastercard Inc.",         "Financials"),
-    ("GS",    "Goldman Sachs",           "Financials"),
-    ("BAC",   "Bank of America",         "Financials"),
-    ("SPGI",  "S&P Global Inc.",         "Financials"),
-    ("JNJ",   "Johnson & Johnson",       "Healthcare"),
-    ("UNH",   "UnitedHealth Group",      "Healthcare"),
-    ("LLY",   "Eli Lilly & Co.",         "Healthcare"),
-    ("ABBV",  "AbbVie Inc.",             "Healthcare"),
-    ("TMO",   "Thermo Fisher",           "Healthcare"),
-    ("NFLX",  "Netflix Inc.",            "Communication"),
-    ("DIS",   "Walt Disney Co.",         "Communication"),
-    ("XOM",   "Exxon Mobil",             "Energy"),
-    ("CVX",   "Chevron Corp.",           "Energy"),
-    ("NEE",   "NextEra Energy",          "Utilities"),
-    ("CAT",   "Caterpillar Inc.",        "Industrials"),
-    ("RTX",   "RTX Corp.",               "Industrials"),
+    # Technology (16)
+    ("AAPL","Apple Inc.","Technology"),("MSFT","Microsoft Corp.","Technology"),
+    ("GOOGL","Alphabet Inc.","Technology"),("META","Meta Platforms","Technology"),
+    ("NVDA","NVIDIA Corp.","Technology"),("AVGO","Broadcom Inc.","Technology"),
+    ("ADBE","Adobe Inc.","Technology"),("CRM","Salesforce Inc.","Technology"),
+    ("TXN","Texas Instruments","Technology"),("AMD","Adv. Micro Devices","Technology"),
+    ("ASML","ASML Holding","Technology"),("TSM","Taiwan Semiconductor","Technology"),
+    ("INTC","Intel Corp.","Technology"),("QCOM","Qualcomm Inc.","Technology"),
+    ("IBM","IBM Corp.","Technology"),("ADP","Auto. Data Processing","Technology"),
+    # Consumer Discretionary (8)
+    ("AMZN","Amazon.com Inc.","Cons. Discretionary"),("TSLA","Tesla Inc.","Cons. Discretionary"),
+    ("MCD","McDonald's Corp.","Cons. Discretionary"),("NKE","Nike Inc.","Cons. Discretionary"),
+    ("HD","Home Depot Inc.","Cons. Discretionary"),("SBUX","Starbucks Corp.","Cons. Discretionary"),
+    ("LOW","Lowe's Companies","Cons. Discretionary"),("TGT","Target Corp.","Cons. Discretionary"),
+    # Consumer Staples (11)
+    ("PG","Procter & Gamble","Consumer Staples"),("KO","Coca-Cola Co.","Consumer Staples"),
+    ("PEP","PepsiCo Inc.","Consumer Staples"),("COST","Costco Wholesale","Consumer Staples"),
+    ("WMT","Walmart Inc.","Consumer Staples"),("CL","Colgate-Palmolive","Consumer Staples"),
+    ("MO","Altria Group","Consumer Staples"),("PM","Philip Morris Intl.","Consumer Staples"),
+    ("GIS","General Mills","Consumer Staples"),("HRL","Hormel Foods","Consumer Staples"),
+    ("CLX","Clorox Co.","Consumer Staples"),
+    # Financials (13)
+    ("BRK-B","Berkshire Hathaway B","Financials"),("JPM","JPMorgan Chase","Financials"),
+    ("V","Visa Inc.","Financials"),("MA","Mastercard Inc.","Financials"),
+    ("GS","Goldman Sachs","Financials"),("BAC","Bank of America","Financials"),
+    ("SPGI","S&P Global Inc.","Financials"),("CB","Chubb Ltd.","Financials"),
+    ("MMC","Marsh & McLennan","Financials"),("AFL","Aflac Inc.","Financials"),
+    ("USB","U.S. Bancorp","Financials"),("COF","Capital One Financial","Financials"),
+    ("BEN","Franklin Resources","Financials"),
+    # Healthcare (13)
+    ("JNJ","Johnson & Johnson","Healthcare"),("UNH","UnitedHealth Group","Healthcare"),
+    ("LLY","Eli Lilly & Co.","Healthcare"),("ABBV","AbbVie Inc.","Healthcare"),
+    ("TMO","Thermo Fisher","Healthcare"),("MRK","Merck & Co.","Healthcare"),
+    ("PFE","Pfizer Inc.","Healthcare"),("ABT","Abbott Laboratories","Healthcare"),
+    ("MDT","Medtronic plc","Healthcare"),("GILD","Gilead Sciences","Healthcare"),
+    ("ISRG","Intuitive Surgical","Healthcare"),("SYK","Stryker Corp.","Healthcare"),
+    ("BDX","Becton Dickinson","Healthcare"),
+    # Communication (5)
+    ("NFLX","Netflix Inc.","Communication"),("DIS","Walt Disney Co.","Communication"),
+    ("T","AT&T Inc.","Communication"),("VZ","Verizon Comm.","Communication"),
+    ("CMCSA","Comcast Corp.","Communication"),
+    # Energy (4)
+    ("XOM","Exxon Mobil","Energy"),("CVX","Chevron Corp.","Energy"),
+    ("COP","ConocoPhillips","Energy"),("EOG","EOG Resources","Energy"),
+    # Utilities (6)
+    ("NEE","NextEra Energy","Utilities"),("SO","Southern Company","Utilities"),
+    ("DUK","Duke Energy","Utilities"),("D","Dominion Energy","Utilities"),
+    ("AEP","American Elec. Power","Utilities"),("WEC","WEC Energy Group","Utilities"),
+    # Industrials (12)
+    ("CAT","Caterpillar Inc.","Industrials"),("RTX","RTX Corp.","Industrials"),
+    ("HON","Honeywell Intl.","Industrials"),("EMR","Emerson Electric","Industrials"),
+    ("ITW","Illinois Tool Works","Industrials"),("DE","Deere & Company","Industrials"),
+    ("LMT","Lockheed Martin","Industrials"),("NOC","Northrop Grumman","Industrials"),
+    ("GD","General Dynamics","Industrials"),("UPS","United Parcel Service","Industrials"),
+    ("FDX","FedEx Corp.","Industrials"),("MMM","3M Company","Industrials"),
+    # Materials (6)
+    ("SHW","Sherwin-Williams","Materials"),("APD","Air Products","Materials"),
+    ("LIN","Linde plc","Materials"),("ECL","Ecolab Inc.","Materials"),
+    ("NUE","Nucor Corp.","Materials"),("DOW","Dow Inc.","Materials"),
+    # Real Estate (6)
+    ("AMT","American Tower","Real Estate"),("PLD","Prologis Inc.","Real Estate"),
+    ("O","Realty Income","Real Estate"),("SPG","Simon Property Group","Real Estate"),
+    ("CCI","Crown Castle Intl.","Real Estate"),("FRT","Federal Realty Trust","Real Estate"),
 ]
 
 MID_CAP = [
-    ("CRWD",  "CrowdStrike Holdings",    "Technology"),
-    ("NET",   "Cloudflare Inc.",         "Technology"),
-    ("DDOG",  "Datadog Inc.",            "Technology"),
-    ("ZS",    "Zscaler Inc.",            "Technology"),
-    ("TTD",   "The Trade Desk",          "Technology"),
-    ("PLTR",  "Palantir Technologies",   "Technology"),
-    ("SNOW",  "Snowflake Inc.",          "Technology"),
-    ("APP",   "AppLovin Corp.",          "Technology"),
-    ("NOW",   "ServiceNow Inc.",         "Technology"),
-    ("SHOP",  "Shopify Inc.",            "Technology"),
-    ("ABNB",  "Airbnb Inc.",             "Cons. Discretionary"),
-    ("DASH",  "DoorDash Inc.",           "Cons. Discretionary"),
-    ("UBER",  "Uber Technologies",       "Cons. Discretionary"),
-    ("LYFT",  "Lyft Inc.",               "Cons. Discretionary"),
-    ("DKNG",  "DraftKings Inc.",         "Cons. Discretionary"),
-    ("COIN",  "Coinbase Global",         "Financials"),
-    ("SQ",    "Block Inc.",              "Financials"),
-    ("PYPL",  "PayPal Holdings",         "Financials"),
-    ("HOOD",  "Robinhood Markets",       "Financials"),
-    ("AFRM",  "Affirm Holdings",         "Financials"),
-    ("CELH",  "Celsius Holdings",        "Consumer Staples"),
-    ("HIMS",  "Hims & Hers Health",      "Healthcare"),
-    ("RBLX",  "Roblox Corp.",            "Communication"),
-    ("PINS",  "Pinterest Inc.",          "Communication"),
-    ("SNAP",  "Snap Inc.",               "Communication"),
+    ("CRWD","CrowdStrike Holdings","Technology"),("NET","Cloudflare Inc.","Technology"),
+    ("DDOG","Datadog Inc.","Technology"),("ZS","Zscaler Inc.","Technology"),
+    ("TTD","The Trade Desk","Technology"),("PLTR","Palantir Technologies","Technology"),
+    ("SNOW","Snowflake Inc.","Technology"),("APP","AppLovin Corp.","Technology"),
+    ("NOW","ServiceNow Inc.","Technology"),("SHOP","Shopify Inc.","Technology"),
+    ("VEEV","Veeva Systems","Technology"),("HUBS","HubSpot Inc.","Technology"),
+    ("MDB","MongoDB Inc.","Technology"),("NTNX","Nutanix Inc.","Technology"),
+    ("TWLO","Twilio Inc.","Technology"),("ROKU","Roku Inc.","Technology"),
+    ("OKTA","Okta Inc.","Technology"),("DOCU","DocuSign Inc.","Technology"),
+    ("PAYC","Paycom Software","Technology"),("PCTY","Paylocity Holding","Technology"),
+    ("ZI","ZoomInfo Technologies","Technology"),("MNDY","Monday.com Ltd.","Technology"),
+    ("CFLT","Confluent Inc.","Technology"),("DOCN","DigitalOcean Holdings","Technology"),
+    ("S","SentinelOne Inc.","Technology"),("GTLB","GitLab Inc.","Technology"),
+    ("BSY","Bentley Systems","Technology"),("FROG","JFrog Ltd.","Technology"),
+    ("BRZE","Braze Inc.","Technology"),("ABNB","Airbnb Inc.","Cons. Discretionary"),
+    ("DASH","DoorDash Inc.","Cons. Discretionary"),("UBER","Uber Technologies","Cons. Discretionary"),
+    ("LYFT","Lyft Inc.","Cons. Discretionary"),("DKNG","DraftKings Inc.","Cons. Discretionary"),
+    ("ETSY","Etsy Inc.","Cons. Discretionary"),("CHWY","Chewy Inc.","Cons. Discretionary"),
+    ("W","Wayfair Inc.","Cons. Discretionary"),
+    ("COIN","Coinbase Global","Financials"),("PYPL","PayPal Holdings","Financials"),
+    ("HOOD","Robinhood Markets","Financials"),("AFRM","Affirm Holdings","Financials"),
+    ("NU","Nu Holdings","Financials"),("RKT","Rocket Companies","Financials"),
+    ("FOUR","Shift4 Payments","Financials"),("Z","Zillow Group","Real Estate"),
+    ("CELH","Celsius Holdings","Consumer Staples"),("HIMS","Hims & Hers Health","Healthcare"),
+    ("RBLX","Roblox Corp.","Communication"),("PINS","Pinterest Inc.","Communication"),
+    ("SNAP","Snap Inc.","Communication"),
 ]
 
 SMALL_CAP = [
-    ("IONQ",  "IonQ Inc.",               "Technology"),
-    ("AI",    "C3.ai Inc.",              "Technology"),
-    ("ESTC",  "Elastic N.V.",            "Technology"),
-    ("GTLB",  "GitLab Inc.",             "Technology"),
-    ("BILL",  "Bill.com Holdings",       "Technology"),
-    ("PATH",  "UiPath Inc.",             "Technology"),
-    ("DBX",   "Dropbox Inc.",            "Technology"),
-    ("ZM",    "Zoom Video Comm.",        "Technology"),
-    ("DUOL",  "Duolingo Inc.",           "Technology"),
-    ("AMBA",  "Ambarella Inc.",          "Technology"),
-    ("JAMF",  "Jamf Holding Corp.",      "Technology"),
-    ("LMND",  "Lemonade Inc.",           "Financials"),
-    ("SOFI",  "SoFi Technologies",       "Financials"),
-    ("UPST",  "Upstart Holdings",        "Financials"),
-    ("OPEN",  "Opendoor Technologies",   "Financials"),
-    ("TMDX",  "TransMedics Group",       "Healthcare"),
-    ("PRCT",  "Procept BioRobotics",     "Healthcare"),
-    ("FORM",  "FormFactor Inc.",         "Technology"),
-    ("SMAR",  "Smartsheet Inc.",         "Technology"),
-    ("ACHR",  "Archer Aviation",         "Industrials"),
+    ("IONQ","IonQ Inc.","Technology"),("AI","C3.ai Inc.","Technology"),
+    ("ESTC","Elastic N.V.","Technology"),("BILL","Bill.com Holdings","Technology"),
+    ("PATH","UiPath Inc.","Technology"),("DBX","Dropbox Inc.","Technology"),
+    ("ZM","Zoom Video Comm.","Technology"),("DUOL","Duolingo Inc.","Technology"),
+    ("AMBA","Ambarella Inc.","Technology"),("FORM","FormFactor Inc.","Technology"),
+    ("RXRX","Recursion Pharma","Healthcare"),("COUR","Coursera Inc.","Technology"),
+    ("FSLY","Fastly Inc.","Technology"),("MGNI","Magnite Inc.","Technology"),
+    ("PUBM","PubMatic Inc.","Technology"),("PAYO","Payoneer Global","Financials"),
+    ("LMND","Lemonade Inc.","Financials"),("SOFI","SoFi Technologies","Financials"),
+    ("UPST","Upstart Holdings","Financials"),("OPEN","Opendoor Technologies","Financials"),
+    ("TMDX","TransMedics Group","Healthcare"),("PRCT","Procept BioRobotics","Healthcare"),
+    ("ACHR","Archer Aviation","Industrials"),("SOUN","SoundHound AI","Technology"),
+    ("KVYO","Klaviyo Inc.","Technology"),
 ]
 
 ALL_TIERS = [
@@ -121,7 +134,17 @@ ALL_TIERS = [
     ("Small Cap", SMALL_CAP),
 ]
 
-# ── Data Fetch ─────────────────────────────────────────────────────────────────
+# ── Dividend Aristocrats ───────────────────────────────────────────────────────
+
+DIVIDEND_ARISTOCRATS = {
+    "ABT","ABBV","ADP","AFL","APD","AOS","BDX","CAT","CB","CINF","CL","CVX",
+    "DOV","ECL","EMR","ESS","EXPD","FDS","FRT","GD","GIS","GPC","HRL","HSY",
+    "ITW","JNJ","KO","LIN","LOW","MCD","MDT","MMC","NUE","O","PEP","PG","PPG",
+    "ROP","ROST","RTX","SHW","SPGI","SYY","TGT","WMT","XOM","BEN","AFL",
+    "CHRW","TROW","CTAS",
+}
+
+# ── Category Config ────────────────────────────────────────────────────────────
 
 CAT_ORDER  = ["deep_value", "undervalued", "buy_zone", "watchlist", "extended"]
 CAT_LABELS = {
@@ -146,6 +169,8 @@ CAT_DESC = {
     "extended":    "More than 15% above the 200-Week MA — wait for a better entry.",
 }
 
+# ── Data Fetch ─────────────────────────────────────────────────────────────────
+
 total_stocks = sum(len(s) for _, s in ALL_TIERS)
 print(f"Fetching 5-year weekly history for {total_stocks} stocks...\n")
 
@@ -163,7 +188,7 @@ for tier_name, stocks in ALL_TIERS:
             hist  = stock.history(period="5y", interval="1wk")
 
             if len(hist) < 30:
-                print(f"  [{idx:02d}/{total_stocks}] {ticker:6s}: insufficient data, skipping")
+                print(f"  [{idx:03d}/{total_stocks}] {ticker:6s}: insufficient data, skipping")
                 continue
 
             window = min(200, len(hist))
@@ -173,7 +198,7 @@ for tier_name, stocks in ALL_TIERS:
             wma_val       = float(hist['WMA'].iloc[-1])
 
             if pd.isna(wma_val):
-                print(f"  [{idx:02d}/{total_stocks}] {ticker:6s}: WMA is NaN, skipping")
+                print(f"  [{idx:03d}/{total_stocks}] {ticker:6s}: WMA is NaN, skipping")
                 continue
 
             pct_diff = ((current_price - wma_val) / wma_val) * 100
@@ -186,6 +211,8 @@ for tier_name, stocks in ALL_TIERS:
 
             mc_str = "N/A"
             w52h = w52l = None
+            years_public = None
+            pays_div = False
             try:
                 fi   = stock.fast_info
                 mc   = getattr(fi, 'market_cap', None)
@@ -193,6 +220,24 @@ for tier_name, stocks in ALL_TIERS:
                     mc_str = f"${mc/1e12:.2f}T" if mc >= 1e12 else f"${mc/1e9:.0f}B"
                 w52h = round(float(fi.fifty_two_week_high), 2) if hasattr(fi, 'fifty_two_week_high') else None
                 w52l = round(float(fi.fifty_two_week_low),  2) if hasattr(fi, 'fifty_two_week_low')  else None
+
+                # Years public
+                try:
+                    fte = getattr(fi, 'first_trade_date_epoch_utc', None)
+                    if fte:
+                        first_dt = datetime.fromtimestamp(float(fte), tz=timezone.utc)
+                        years_public = int((datetime.now(tz=timezone.utc) - first_dt).days / 365.25)
+                except:
+                    pass
+
+                # Dividend
+                try:
+                    ldv = getattr(fi, 'last_dividend_value', None)
+                    if ldv and float(ldv) > 0:
+                        pays_div = True
+                except:
+                    pass
+
             except:
                 pass
 
@@ -217,7 +262,9 @@ for tier_name, stocks in ALL_TIERS:
             }
 
             arrow = "▲" if pct_diff >= 0 else "▼"
-            print(f"  [{idx:02d}/{total_stocks}] {ticker:6s}: ${current_price:>9.2f} | 200WMA ${wma_val:>9.2f} | {arrow}{abs(pct_diff):5.1f}% → {CAT_LABELS[category].split(' ',1)[1]}")
+            yrs_str = f"{years_public}y" if years_public is not None else " N/A"
+            div_str = "👑" if ticker in DIVIDEND_ARISTOCRATS else ("💰" if pays_div else " —")
+            print(f"  [{idx:03d}/{total_stocks}] {ticker:6s}: ${current_price:>9.2f} | 200WMA ${wma_val:>9.2f} | {arrow}{abs(pct_diff):5.1f}% → {CAT_LABELS[category].split(' ',1)[1]}  {yrs_str}  {div_str}")
 
             results.append({
                 "ticker":      ticker,
@@ -232,12 +279,14 @@ for tier_name, stocks in ALL_TIERS:
                 "market_cap":  mc_str,
                 "weeks_data":  len(hist),
                 "full_200wma": len(hist) >= 200,
+                "years_public": years_public,
+                "pays_div":    pays_div,
             })
 
             time.sleep(0.25)
 
         except Exception as e:
-            print(f"  [{idx:02d}/{total_stocks}] {ticker:6s}: ERROR — {e}")
+            print(f"  [{idx:03d}/{total_stocks}] {ticker:6s}: ERROR — {e}")
 
     results.sort(key=lambda x: (CAT_ORDER.index(x['category']), x['pct_diff']))
     tier_results[tier_name] = results
@@ -271,6 +320,14 @@ def bar_html(pct):
         f'</div></div>'
     )
 
+def div_badge_html(ticker, pays_div):
+    if ticker in DIVIDEND_ARISTOCRATS:
+        return '<span class="div-badge aristocrat" title="Dividend Aristocrat — 25+ consecutive years of dividend increases">👑</span>'
+    elif pays_div:
+        return '<span class="div-badge payer" title="Pays dividend">💰</span>'
+    else:
+        return '<span class="div-badge none">—</span>'
+
 # ── Build Sections HTML ────────────────────────────────────────────────────────
 
 def build_tier_html(tier_name, results):
@@ -298,6 +355,9 @@ def build_tier_html(tier_name, results):
 
         ticker_safe = r['ticker'].replace('-', '_')
 
+        yrs_display = f"{r['years_public']} yrs" if r['years_public'] is not None else "N/A"
+        div_html = div_badge_html(r['ticker'], r['pays_div'])
+
         rows_html += f"""
     <tr class="stock-row" onclick="toggleChart('{ticker_safe}')" id="row-{ticker_safe}" data-cat="{r['category']}">
       <td class="ticker-cell">
@@ -306,6 +366,8 @@ def build_tier_html(tier_name, results):
       </td>
       <td class="company">{r['name']}</td>
       <td><span class="sector-pill">{r['sector']}</span></td>
+      <td class="num muted yrs-pub">{yrs_display}</td>
+      <td class="div-td">{div_html}</td>
       <td class="num">${r['price']:,.2f}</td>
       <td class="num muted">${r['wma200']:,.2f}</td>
       {pct_cell(r['pct_diff'])}
@@ -315,7 +377,7 @@ def build_tier_html(tier_name, results):
       <td class="muted w52">{w52}</td>
     </tr>
     <tr class="chart-row" id="chart-{ticker_safe}" style="display:none">
-      <td colspan="10">
+      <td colspan="12">
         <div class="chart-container">
           <div class="chart-header">
             <span class="chart-title">{r['ticker']} — {r['name']}</span>
@@ -341,6 +403,7 @@ def build_tier_html(tier_name, results):
         <thead>
           <tr>
             <th>Ticker</th><th>Company</th><th>Sector</th>
+            <th class="num">Yrs Public</th><th>Div</th>
             <th class="num">Price</th><th class="num">200-WMA</th>
             <th class="num">vs 200-WMA</th><th>Position</th>
             <th>Status</th><th class="num">Mkt Cap</th><th>52-Wk Range</th>
@@ -478,6 +541,7 @@ thead th {{
   text-transform:uppercase; letter-spacing:.04em;
   border-bottom:1px solid var(--border); white-space:nowrap;
 }}
+th.num {{ text-align:right }}
 .stock-row {{
   border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s;
 }}
@@ -515,6 +579,15 @@ thead th {{
   font-size:11px; font-weight:600; white-space:nowrap;
 }}
 
+/* Dividend badge */
+.div-td {{ text-align:center }}
+.div-badge {{ font-size:15px; display:inline-block }}
+.div-badge.aristocrat {{ filter: drop-shadow(0 0 3px #fed33060) }}
+.div-badge.none {{ color:var(--muted); font-size:13px }}
+
+/* Years public */
+.yrs-pub {{ text-align:center; color:var(--muted) }}
+
 /* Position bar */
 .bar-td {{ min-width:130px }}
 .bar-wrap {{ width:120px }}
@@ -541,13 +614,6 @@ thead th {{
 .chart-sub   {{ font-size:12px; color:var(--muted) }}
 .chart-stat  {{ font-size:13px; font-weight:700; margin-left:auto }}
 
-/* Legend */
-.chart-legend {{
-  display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;
-}}
-.legend-item {{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted) }}
-.legend-dot  {{ width:12px; height:3px; border-radius:2px }}
-
 /* Footer */
 footer {{
   border-top:1px solid var(--border); padding:18px 32px;
@@ -558,12 +624,12 @@ footer {{
 .notes-box {{
   margin-top:20px; padding:12px 16px; background:var(--bg2);
   border:1px solid var(--border); border-radius:6px;
-  font-size:12px; color:var(--muted);
+  font-size:12px; color:var(--muted); line-height:1.8;
 }}
 
 @media (max-width:768px) {{
   header, .stats, main, .strategy, .tier-nav {{ padding-left:14px; padding-right:14px }}
-  .mc, .w52 {{ display:none }}
+  .mc, .w52, .yrs-pub {{ display:none }}
   .bar-td {{ display:none }}
 }}
 </style>
@@ -581,7 +647,7 @@ footer {{
 
 <div class="strategy">
   <strong>"Strategy:"</strong> "If all you ever did was buy high-quality stocks on the 200-week moving average,
-  you would beat the S&P 500 by a large margin over time. The problem is,
+  you would beat the S&amp;P 500 by a large margin over time. The problem is,
   few human beings have that kind of discipline."
 </div>
 
@@ -606,13 +672,14 @@ footer {{
     <span style="color:#a4b0be;font-weight:600">Extended</span> (&gt;+15%) ·
     Click any row to expand the price chart.
     <span class="warn">†</span> = fewer than 200 weeks of price history available.
+    👑 = Dividend Aristocrat (25+ consecutive years of dividend increases) · 💰 = Pays dividend
     Data from Yahoo Finance via yfinance. <em>Not financial advice.</em>
   </div>
 </main>
 
 <footer>
-  <strong>200-Week MA Stock Scanner</strong> · Built by Tuchus 🐶 ·
-  Data: Yahoo Finance · Not financial advice · {now_str}
+  <strong>200-Week MA Stock Scanner v3</strong> · Built by Tuchus 🐶 ·
+  175 stocks · Data: Yahoo Finance · Not financial advice · {now_str}
 </footer>
 
 <script>
@@ -647,7 +714,6 @@ function renderChart(ticker) {{
 
   const ctx = canvas.getContext('2d');
 
-  // Build +5%/−5% band as fill-between using two datasets
   activeCharts[ticker] = new Chart(ctx, {{
     type: 'line',
     data: {{
@@ -659,11 +725,11 @@ function renderChart(ticker) {{
           data: data.wma_p10,
           borderColor: 'transparent',
           backgroundColor: 'rgba(255,107,107,0.08)',
-          fill: '+1',  // fill to next dataset
+          fill: '+1',
           pointRadius: 0,
           tension: 0.3,
         }},
-        // -10% band (bottom edge, invisible line)
+        // -10% band (bottom edge)
         {{
           label: '−10% zone',
           data: data.wma_m10,
@@ -777,13 +843,22 @@ with open(OUT, "w", encoding="utf-8") as f:
     f.write(html)
 
 CANVAS = "/Users/patmaverick/.openclaw/canvas/stock_scanner.html"
-import shutil
+import shutil, os
+os.makedirs(os.path.dirname(CANVAS), exist_ok=True)
 shutil.copy(OUT, CANVAS)
 
 total = len(all_results)
-print(f"✅ Done! {total} stocks across {len(tier_results)} tiers")
+print(f"\n✅ Done! {total} stocks successfully processed across {len(tier_results)} tiers")
 for cat in CAT_ORDER:
     n = global_counts[cat]
     if n: print(f"   {CAT_LABELS[cat]}: {n}")
 print(f"\n→ HTML: {OUT}")
 print(f"→ Canvas: {CANVAS}")
+
+# Notable picks
+notable = [r for r in all_results if r['category'] in ('deep_value', 'buy_zone')]
+if notable:
+    print(f"\n⭐ Notable (Deep Value + Buy Zone):")
+    for r in notable[:15]:
+        sign = "+" if r['pct_diff'] >= 0 else ""
+        print(f"   {r['ticker']:6s} {r['name']:30s} {sign}{r['pct_diff']:.1f}%  [{CAT_LABELS[r['category']].split(' ',1)[1]}]")

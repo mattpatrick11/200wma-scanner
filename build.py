@@ -265,8 +265,8 @@ for tier_name, stocks in ALL_TIERS:
             except:
                 pass
 
-            # ── Chart data: last 200 weeks ──────────────────────────────────
-            chart_hist = hist.tail(200).copy()
+            # ── Chart data: valid-WMA rows only, last 156 weeks (~3 yr) ──
+            chart_hist = hist.dropna(subset=['WMA']).tail(156).copy()
             ch_labels  = [d.strftime("%Y-%m-%d") for d in chart_hist.index]
             ch_prices  = [round(float(v), 2) if not pd.isna(v) else None for v in chart_hist['Close']]
             ch_wma     = [round(float(v), 2) if not pd.isna(v) else None for v in chart_hist['WMA']]
@@ -354,11 +354,11 @@ def pe_cell(pe):
 
 def div_badge_html(ticker, pays_div):
     if ticker in DIVIDEND_ARISTOCRATS:
-        return '<span class="div-badge aristocrat" title="Dividend Aristocrat — 25+ consecutive years of dividend increases">👑</span>'
+        return '<span class="div-yes aristocrat" title="Dividend Aristocrat or King — 25+ consecutive years of consecutive dividend increases">👑 Yes</span>'
     elif pays_div:
-        return '<span class="div-badge payer" title="Pays dividend">💰</span>'
+        return '<span class="div-yes payer">Yes</span>'
     else:
-        return '<span class="div-badge none">—</span>'
+        return '<span class="div-no">No</span>'
 
 # ── Build Sections HTML ────────────────────────────────────────────────────────
 
@@ -413,7 +413,7 @@ def build_tier_html(tier_name, results):
             <span class="chart-sub">Weekly Close vs 200-Week Moving Average · Last 200 Weeks</span>
             <span class="chart-stat" style="color:{cat_c}">{'+' if r['pct_diff']>=0 else ''}{r['pct_diff']:.1f}% vs 200WMA</span>
           </div>
-          <canvas id="canvas-{ticker_safe}" height="260"></canvas>
+          <canvas id="canvas-{ticker_safe}" height="180"></canvas>
         </div>
       </td>
     </tr>"""
@@ -432,7 +432,7 @@ def build_tier_html(tier_name, results):
         <thead>
           <tr>
             <th>Ticker</th><th>Company</th><th>Sector</th>
-            <th class="num">Yrs Public</th><th>Div</th>
+            <th class="num">Yrs Public</th><th title="👑 = Dividend Aristocrat or King (25+ yrs of consecutive increases) | Yes = pays div | No = none">Div ℹ️</th>
             <th class="num">Price</th><th class="num">200-WMA</th>
             <th class="num">vs 200-WMA</th><th>Position</th>
             <th>Status</th><th class="num">Mkt Cap</th><th class="num">P/E Ratio</th>
@@ -610,9 +610,9 @@ th.num {{ text-align:right }}
 
 /* Dividend badge */
 .div-td {{ text-align:center }}
-.div-badge {{ font-size:15px; display:inline-block }}
-.div-badge.aristocrat {{ filter: drop-shadow(0 0 3px #fed33060) }}
-.div-badge.none {{ color:var(--muted); font-size:13px }}
+.div-yes {{ font-size:12px; font-weight:600; color:#26de81 }}
+.div-yes.aristocrat {{ color:#fed330 }}
+.div-no {{ font-size:12px; color:var(--muted) }}
 
 /* Years public */
 .yrs-pub {{ text-align:center; color:var(--muted) }}
@@ -701,7 +701,8 @@ footer {{
     <span style="color:#a4b0be;font-weight:600">Extended</span> (&gt;+15%) ·
     Click any row to expand the price chart.
     <span class="warn">†</span> = fewer than 200 weeks of price history available.
-    👑 = Dividend Aristocrat (25+ consecutive years of dividend increases) · 💰 = Pays dividend
+    <strong style="color:#fed330">👑 Crown</strong> = Dividend Aristocrat or King (25+ consecutive years of dividend increases, e.g. KO, PG, JNJ) ·
+    <strong style="color:#26de81">Yes</strong> = pays a dividend · <span style="color:var(--muted)">No</span> = no dividend paid
     Data from Yahoo Finance via yfinance. <em>Not financial advice.</em>
   </div>
 </main>

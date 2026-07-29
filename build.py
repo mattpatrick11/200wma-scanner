@@ -117,6 +117,7 @@ MID_CAP = [
     ("SE","Sea Limited","Technology"),("GRAB","Grab Holdings","Technology"),
     ("NBIS","Nebius Group","Technology"),("ZETA","Zeta Global Holdings","Technology"),
     ("ASTS","AST SpaceMobile","Communication"),
+    ("GNRC","Generac Holdings","Industrials"),
 ]
 
 SMALL_CAP = [
@@ -136,6 +137,10 @@ SMALL_CAP = [
     ("JOBY","Joby Aviation","Industrials"),("AUR","Aurora Innovation","Technology"),
     ("ADUR","Aduro Clean Technologies","Energy"),("WYFI","Wyfi Inc.","Technology"),
     ("GRRR","Gorilla Technology Group","Technology"),
+    ("ONDS","Ondas Holdings","Technology"),
+    ("PCT","PureCycle Technologies","Materials"),
+    ("NUAI","NuScale Power Corp.","Energy"),
+    ("IREN","Iris Energy Ltd.","Technology"),
 ]
 
 ALL_TIERS = [

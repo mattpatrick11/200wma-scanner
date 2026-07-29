@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-200-Week Moving Average Stock Scanner — v3
+200-Week Moving Average Stock Scanner — v4
 Large/Mid/Small Cap · Embedded Charts · GitHub Dark Theme
-175 stocks · Years-Public column · Dividend / Aristocrat badges
+190 stocks · Years-Public column · Dividend / Aristocrat badges
 """
 
 import subprocess, sys
@@ -27,8 +27,9 @@ LARGE_CAP = [
     ("ASML","ASML Holding","Technology"),("TSM","Taiwan Semiconductor","Technology"),
     ("INTC","Intel Corp.","Technology"),("QCOM","Qualcomm Inc.","Technology"),
     ("IBM","IBM Corp.","Technology"),("ADP","Auto. Data Processing","Technology"),
-    # Consumer Discretionary (8)
+    # Consumer Discretionary (9)
     ("AMZN","Amazon.com Inc.","Cons. Discretionary"),("TSLA","Tesla Inc.","Cons. Discretionary"),
+    ("BABA","Alibaba Group","Cons. Discretionary"),
     ("MCD","McDonald's Corp.","Cons. Discretionary"),("NKE","Nike Inc.","Cons. Discretionary"),
     ("HD","Home Depot Inc.","Cons. Discretionary"),("SBUX","Starbucks Corp.","Cons. Discretionary"),
     ("LOW","Lowe's Companies","Cons. Discretionary"),("TGT","Target Corp.","Cons. Discretionary"),
@@ -47,14 +48,15 @@ LARGE_CAP = [
     ("MMC","Marsh & McLennan","Financials"),("AFL","Aflac Inc.","Financials"),
     ("USB","U.S. Bancorp","Financials"),("COF","Capital One Financial","Financials"),
     ("BEN","Franklin Resources","Financials"),
-    # Healthcare (13)
+    # Healthcare (16)
     ("JNJ","Johnson & Johnson","Healthcare"),("UNH","UnitedHealth Group","Healthcare"),
     ("LLY","Eli Lilly & Co.","Healthcare"),("ABBV","AbbVie Inc.","Healthcare"),
     ("TMO","Thermo Fisher","Healthcare"),("MRK","Merck & Co.","Healthcare"),
     ("PFE","Pfizer Inc.","Healthcare"),("ABT","Abbott Laboratories","Healthcare"),
     ("MDT","Medtronic plc","Healthcare"),("GILD","Gilead Sciences","Healthcare"),
     ("ISRG","Intuitive Surgical","Healthcare"),("SYK","Stryker Corp.","Healthcare"),
-    ("BDX","Becton Dickinson","Healthcare"),
+    ("BDX","Becton Dickinson","Healthcare"),("NVO","Novo Nordisk A/S","Healthcare"),
+    ("BMY","Bristol-Myers Squibb","Healthcare"),("OSCR","Oscar Health Inc.","Healthcare"),
     # Communication (5)
     ("NFLX","Netflix Inc.","Communication"),("DIS","Walt Disney Co.","Communication"),
     ("T","AT&T Inc.","Communication"),("VZ","Verizon Comm.","Communication"),
@@ -73,10 +75,11 @@ LARGE_CAP = [
     ("LMT","Lockheed Martin","Industrials"),("NOC","Northrop Grumman","Industrials"),
     ("GD","General Dynamics","Industrials"),("UPS","United Parcel Service","Industrials"),
     ("FDX","FedEx Corp.","Industrials"),("MMM","3M Company","Industrials"),
-    # Materials (6)
+    # Materials (7)
     ("SHW","Sherwin-Williams","Materials"),("APD","Air Products","Materials"),
     ("LIN","Linde plc","Materials"),("ECL","Ecolab Inc.","Materials"),
     ("NUE","Nucor Corp.","Materials"),("DOW","Dow Inc.","Materials"),
+    ("NEM","Newmont Corp.","Materials"),
     # Real Estate (6)
     ("AMT","American Tower","Real Estate"),("PLD","Prologis Inc.","Real Estate"),
     ("O","Realty Income","Real Estate"),("SPG","Simon Property Group","Real Estate"),
@@ -110,6 +113,10 @@ MID_CAP = [
     ("CELH","Celsius Holdings","Consumer Staples"),("HIMS","Hims & Hers Health","Healthcare"),
     ("RBLX","Roblox Corp.","Communication"),("PINS","Pinterest Inc.","Communication"),
     ("SNAP","Snap Inc.","Communication"),
+    # International / Emerging
+    ("SE","Sea Limited","Technology"),("GRAB","Grab Holdings","Technology"),
+    ("NBIS","Nebius Group","Technology"),("ZETA","Zeta Global Holdings","Technology"),
+    ("ASTS","AST SpaceMobile","Communication"),
 ]
 
 SMALL_CAP = [
@@ -126,6 +133,9 @@ SMALL_CAP = [
     ("TMDX","TransMedics Group","Healthcare"),("PRCT","Procept BioRobotics","Healthcare"),
     ("ACHR","Archer Aviation","Industrials"),("SOUN","SoundHound AI","Technology"),
     ("KVYO","Klaviyo Inc.","Technology"),
+    ("JOBY","Joby Aviation","Industrials"),("AUR","Aurora Innovation","Technology"),
+    ("ADUR","Aduro Clean Technologies","Energy"),("WYFI","Wyfi Inc.","Technology"),
+    ("GRRR","Gorilla Technology Group","Technology"),
 ]
 
 ALL_TIERS = [

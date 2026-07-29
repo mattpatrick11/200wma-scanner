@@ -26,7 +26,7 @@ LARGE_CAP = [
     ("TXN","Texas Instruments","Technology"),("AMD","Adv. Micro Devices","Technology"),
     ("ASML","ASML Holding","Technology"),("TSM","Taiwan Semiconductor","Technology"),
     ("INTC","Intel Corp.","Technology"),("QCOM","Qualcomm Inc.","Technology"),
-    ("IBM","IBM Corp.","Technology"),("ADP","Auto. Data Processing","Technology"),
+    ("IBM","IBM Corp.","Technology"),("ADP","Auto. Data Processing","Technology"),("PANW","Palo Alto Networks","Technology"),
     # Consumer Discretionary (9)
     ("AMZN","Amazon.com Inc.","Cons. Discretionary"),("TSLA","Tesla Inc.","Cons. Discretionary"),
     ("BABA","Alibaba Group","Cons. Discretionary"),
@@ -143,10 +143,15 @@ SMALL_CAP = [
     ("IREN","Iris Energy Ltd.","Technology"),
 ]
 
+ETF = [
+    ("VXUS", "Vanguard Total Intl. Stock ETF", "Intl. Equity"),
+]
+
 ALL_TIERS = [
     ("Large Cap", LARGE_CAP),
     ("Mid Cap",   MID_CAP),
     ("Small Cap", SMALL_CAP),
+    ("ETFs",      ETF),
 ]
 
 # ── Dividend Aristocrats ───────────────────────────────────────────────────────
@@ -688,6 +693,7 @@ footer {{
   <a href="#tier-large-cap">📊 Large Cap ({len(tier_results.get("Large Cap",[]))})</a>
   <a href="#tier-mid-cap">🚀 Mid Cap ({len(tier_results.get("Mid Cap",[]))})</a>
   <a href="#tier-small-cap">🌱 Small Cap ({len(tier_results.get("Small Cap",[]))})</a>
+  <a href="#tier-etfs">🌎 ETFs ({len(tier_results.get("ETFs",[]))})</a>
 </div>
 
 <main>

@@ -785,11 +785,58 @@ footer {{
   font-size:12px; color:var(--muted); background:var(--bg2);
 }}
 
-/* Notes box */
+/* Notes box (legacy) */
 .notes-box {{
   margin-top:20px; padding:12px 16px; background:var(--bg2);
   border:1px solid var(--border); border-radius:6px;
   font-size:12px; color:var(--muted); line-height:1.8;
+}}
+
+/* ── Legend / Key section ── */
+.legend-section {{ margin-top:36px }}
+.legend-heading {{
+  font-size:16px; font-weight:700; color:var(--text);
+  margin-bottom:14px; padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}}
+.legend-grid {{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+}}
+.legend-card {{
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:8px; padding:18px;
+}}
+.legend-card-title {{
+  font-size:13px; font-weight:700; color:var(--text);
+  margin-bottom:10px; padding-bottom:9px;
+  border-bottom:1px solid var(--border);
+}}
+.legend-card-desc {{
+  font-size:12px; color:var(--muted); line-height:1.65;
+  margin-bottom:14px;
+}}
+.legend-rows {{ display:flex; flex-direction:column; gap:10px }}
+.legend-row {{ display:flex; align-items:flex-start; gap:10px }}
+.legend-lbadge {{
+  display:inline-block; padding:2px 9px; border-radius:4px;
+  font-size:11px; font-weight:600; white-space:nowrap;
+  flex-shrink:0; min-width:86px; text-align:center;
+}}
+.legend-lbadge.w126 {{ min-width:126px }}
+.legend-pe-val {{
+  font-size:12px; font-weight:700; white-space:nowrap;
+  flex-shrink:0; min-width:44px; font-family:var(--mono);
+  padding-top:1px;
+}}
+.legend-text {{ font-size:12px; color:var(--muted); line-height:1.55 }}
+.legend-text strong {{ color:var(--text) }}
+.legend-footnote {{
+  margin-top:14px; padding:11px 15px; background:var(--bg2);
+  border:1px solid var(--border); border-radius:6px;
+  font-size:12px; color:var(--muted); line-height:2.0;
+}}
+@media (max-width:960px) {{
+  .legend-grid {{ grid-template-columns:1fr }}
 }}
 
 @media (max-width:768px) {{
@@ -829,22 +876,109 @@ footer {{
 
 <main>
 {all_sections}
-  <div class="notes-box">
-    <strong style="color:var(--text)">How to read this:</strong>
-    <span style="color:#ff6b6b;font-weight:600">Deep Value</span> (&lt;−10%) ·
-    <span style="color:#ff9f43;font-weight:600">Undervalued</span> (−3% to −10%) ·
-    <span style="color:#26de81;font-weight:600">Buy Zone</span> (±3%) ·
-    <span style="color:#fed330;font-weight:600">Watchlist</span> (+3% to +15%) ·
-    <span style="color:#a4b0be;font-weight:600">Extended</span> (&gt;+15%) ·
-    Click any row to expand the price chart.
-    <span class="warn">†</span> = fewer than 200 weeks of price history available.
-    <strong style="color:#fed330">👑 Crown</strong> = Dividend Aristocrat or King (25+ consecutive years of dividend increases, e.g. KO, PG, JNJ) ·
-    <strong style="color:#26de81">Yes</strong> = pays a dividend · <span style="color:var(--muted)">No</span> = no dividend paid
-    <br><strong style="color:var(--text)">Fib Zone:</strong>
-    <span style="color:#26de81;font-weight:600">🎯 38.2% / 50% / 61.8%</span> = price is at a key Fibonacci retracement level of the 52-week swing (strong buy signal in an uptrend) ·
-    <span style="color:#4ecdc4;font-weight:600">📐 Golden Zone</span> = price is within the 38.2–61.8% retracement range ·
-    Fibonacci levels are calculated from the 52-week swing high and swing low.
-    Data from Yahoo Finance via yfinance. <em>Not financial advice.</em>
+  <div class="legend-section">
+    <h2 class="legend-heading">📖 Column Reference Guide</h2>
+    <div class="legend-grid">
+
+      <!-- ── STATUS CARD ── -->
+      <div class="legend-card">
+        <div class="legend-card-title">📊 Status — 200-Week Moving Average</div>
+        <p class="legend-card-desc">Ranks each stock by how far its current price sits above or below its <strong style="color:var(--text)">200-Week Moving Average (200-WMA)</strong> — the average closing price over the last ~4 years. Stocks near or below their 200-WMA have historically offered the strongest long-term entry points.</p>
+        <div class="legend-rows">
+          <div class="legend-row">
+            <span class="legend-lbadge" style="color:#ff6b6b;background:#3a1414;border:1px solid #ff6b6b40">🔴 Deep Value</span>
+            <span class="legend-text"><strong>&gt;10% below</strong> the 200-WMA. Historically rare. The stock has dropped well below its long-term average — highest potential upside, but worth understanding <em>why</em> it fell.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge" style="color:#ff9f43;background:#2d1f0f;border:1px solid #ff9f4340">🟠 Undervalued</span>
+            <span class="legend-text"><strong>3–10% below</strong> the 200-WMA. Prime buy territory per the strategy — price is approaching its long-term average from below.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge" style="color:#26de81;background:#0d2b1a;border:1px solid #26de8140">🟢 Buy Zone</span>
+            <span class="legend-text"><strong>Within ±3%</strong> of the 200-WMA. The ideal entry point — price is right at its long-term average, the sweet spot of the strategy.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge" style="color:#fed330;background:#2a250a;border:1px solid #fed33040">🟡 Watchlist</span>
+            <span class="legend-text"><strong>3–15% above</strong> the 200-WMA. Quality stock trading above its average — add to your watchlist and wait for a pullback to Buy Zone or below.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge" style="color:#a4b0be;background:#1c2029;border:1px solid #a4b0be40">⬜ Extended</span>
+            <span class="legend-text"><strong>&gt;15% above</strong> the 200-WMA. Overextended — the stock has run far above its average. Patience required; a better entry will likely come.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── P/E RATIO CARD ── -->
+      <div class="legend-card">
+        <div class="legend-card-title">📉 P/E Ratio (Price-to-Earnings)</div>
+        <p class="legend-card-desc">How much investors pay for each <strong style="color:var(--text)">$1 of annual profit</strong>. A stock at $50 earning $5/share has a P/E of 10x. Lower generally = cheaper relative to earnings. Uses trailing 12-month P/E; falls back to forward P/E when unavailable.</p>
+        <div class="legend-rows">
+          <div class="legend-row">
+            <span class="legend-pe-val" style="color:#26de81">&lt;15x</span>
+            <span class="legend-text"><strong>Value territory.</strong> Cheap relative to earnings. Common in mature, slow-growth industries. May signal an undervalued opportunity — or a declining business.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-pe-val" style="color:#e6edf3">15–25x</span>
+            <span class="legend-text"><strong>Fair value.</strong> The historical average for the S&amp;P 500. Reasonable pricing for a stable, profitable company with moderate growth.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-pe-val" style="color:#fed330">25–40x</span>
+            <span class="legend-text"><strong>Growth premium.</strong> Investors are paying up for expected future earnings growth. Justified if the company is expanding fast; risky if growth disappoints.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-pe-val" style="color:#ff9f43">&gt;40x</span>
+            <span class="legend-text"><strong>Expensive.</strong> Very high expectations baked in. Earnings must grow substantially to justify the price — elevated risk if the growth story falters.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-pe-val" style="color:#8b949e">—</span>
+            <span class="legend-text"><strong>Not available.</strong> Company is unprofitable (negative earnings make P/E meaningless), or data is unavailable from the data source.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FIB ZONE CARD ── -->
+      <div class="legend-card">
+        <div class="legend-card-title">📐 Fib Zone (Fibonacci Retracement)</div>
+        <p class="legend-card-desc">Measures how far a stock has <strong style="color:var(--text)">pulled back from its 52-week high</strong>. The key Fibonacci levels — 38.2%, 50%, and 61.8% — tend to act as natural support zones during an uptrend. Hover any badge for the exact 52-week high, low, and retracement %.</p>
+        <div class="legend-rows">
+          <div class="legend-row">
+            <span class="legend-lbadge w126" style="color:#26de81">🎯 61.8% — Golden Ratio</span>
+            <span class="legend-text"><strong>Strongest level.</strong> Derived from the golden ratio (1.618) — the most-watched Fibonacci support. Major reversals most often occur here during an uptrend. Highest-conviction entry of the three.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge w126" style="color:#26de81">🎯 50.0% — Midpoint</span>
+            <span class="legend-text"><strong>Psychological level.</strong> Not a true Fibonacci number, but traders widely treat the halfway point of a move as key support/resistance. Broadly followed and self-reinforcing.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge w126" style="color:#26de81">🎯 38.2% — Shallow</span>
+            <span class="legend-text"><strong>Strong trend signal.</strong> A modest pullback — bulls stepped in early. Indicates a robust uptrend. Least downside risk of the three key levels, but also least upside if the trend stalls.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge w126" style="color:#4ecdc4">📐 Golden Zone</span>
+            <span class="legend-text"><strong>38.2–61.8% range.</strong> Price is inside the golden zone but not pinned to a specific level. Still a favorable area — most traders consider the full 38.2–61.8% band the primary buy zone in an uptrend.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge w126" style="color:#fed330;background:transparent">— 23.6% / 78.6%</span>
+            <span class="legend-text"><strong>Minor Fib levels.</strong> 23.6% = very shallow pullback (powerful, fast-moving trend). 78.6% = deep retracement (trend under pressure — watch for a breakdown below the swing low).</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-lbadge w126" style="color:#8b949e">~xx%</span>
+            <span class="legend-text"><strong>Between levels.</strong> Price is not near any key Fibonacci level. No actionable Fib signal at this time — consider other indicators or wait for price to reach a level.</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /legend-grid -->
+
+    <div class="legend-footnote">
+      <strong style="color:var(--text)">Other notes:</strong>
+      Click any stock row to expand its price chart ·
+      <span class="warn">†</span> = fewer than 200 weeks of price data (200-WMA is an approximation) ·
+      <strong style="color:#fed330">👑 Crown</strong> = Dividend Aristocrat or King — 25+ consecutive years of dividend increases (e.g. KO, JNJ, PG) ·
+      <strong style="color:#26de81">Yes</strong> = pays a dividend ·
+      <span style="color:var(--muted)">No</span> = no dividend ·
+      Data via Yahoo Finance (yfinance) · <em>Not financial advice.</em>
+    </div>
   </div>
 </main>
 

@@ -231,6 +231,68 @@ CAT_DESC = {
     "extended":    "More than 15% above the 200-Week MA — wait for a better entry.",
 }
 
+# ── Fibonacci Helper (defined here so it's available in the data fetch loop) ──
+
+def calc_fib(hist_close, current_price):
+    """
+    52-week Fibonacci retracement analysis.
+    Measures how far price has pulled back from the 52-week swing high.
+    Key buy-zone levels: 38.2%, 50.0%, 61.8% (golden ratio).
+    """
+    recent      = hist_close.tail(52)
+    swing_high  = float(recent.max())
+    swing_low   = float(recent.min())
+    rng         = swing_high - swing_low
+    if rng < 0.01:
+        return {"fib_zone": "\u2014", "fib_color": "#8b949e", "fib_is_buy": False,
+                "fib_retracement": None, "fib_nearest": "\u2014",
+                "fib_swing_high": swing_high, "fib_swing_low": swing_low}
+
+    pct_from_high = max(0.0, min(100.0, (swing_high - current_price) / rng * 100))
+
+    FIB_LEVELS = [
+        (0.0,   "0%",    False),
+        (23.6,  "23.6%", False),
+        (38.2,  "38.2%", True),
+        (50.0,  "50.0%", True),
+        (61.8,  "61.8%", True),
+        (78.6,  "78.6%", False),
+        (100.0, "100%",  False),
+    ]
+
+    nearest                       = min(FIB_LEVELS, key=lambda x: abs(x[0] - pct_from_high))
+    fib_pct, fib_name, is_buy_level = nearest
+    dist      = abs(pct_from_high - fib_pct)
+    TOLERANCE = 4.0
+    in_golden = 38.2 <= pct_from_high <= 61.8
+
+    if dist <= TOLERANCE and is_buy_level:
+        fib_zone   = f"\U0001f3af {fib_name}"
+        fib_color  = "#26de81"
+        fib_is_buy = True
+    elif in_golden:
+        fib_zone   = "\U0001f4d0 Golden Zone"
+        fib_color  = "#4ecdc4"
+        fib_is_buy = True
+    elif dist <= TOLERANCE:
+        fib_zone   = f"\u2014 {fib_name}"
+        fib_color  = "#fed330"
+        fib_is_buy = False
+    else:
+        fib_zone   = f"~{fib_name}"
+        fib_color  = "#8b949e"
+        fib_is_buy = False
+
+    return {
+        "fib_zone":        fib_zone,
+        "fib_color":       fib_color,
+        "fib_is_buy":      fib_is_buy,
+        "fib_retracement": round(pct_from_high, 1),
+        "fib_nearest":     fib_name,
+        "fib_swing_high":  round(swing_high, 2),
+        "fib_swing_low":   round(swing_low, 2),
+    }
+
 # ── Data Fetch ─────────────────────────────────────────────────────────────────
 
 total_stocks = sum(len(s) for _, s in ALL_TIERS)
@@ -312,6 +374,9 @@ for tier_name, stocks in ALL_TIERS:
             except:
                 pass
 
+            # ── Fibonacci retracement (52-week swing) ──
+            fib_data = calc_fib(hist['Close'], current_price)
+
             # ── Chart data: valid-WMA rows only, last 156 weeks (~3 yr) ──
             chart_hist = hist.dropna(subset=['WMA']).tail(156).copy()
             ch_labels  = [d.strftime("%Y-%m-%d") for d in chart_hist.index]
@@ -349,8 +414,15 @@ for tier_name, stocks in ALL_TIERS:
                 "market_cap":  mc_str,
                 "weeks_data":  len(hist),
                 "full_200wma": len(hist) >= 200,
-                "years_public": years_public,
-                "pays_div":    pays_div,
+                "years_public":     years_public,
+                "pays_div":         pays_div,
+                "fib_zone":         fib_data["fib_zone"],
+                "fib_color":        fib_data["fib_color"],
+                "fib_is_buy":       fib_data["fib_is_buy"],
+                "fib_retracement":  fib_data["fib_retracement"],
+                "fib_nearest":      fib_data["fib_nearest"],
+                "fib_swing_high":   fib_data["fib_swing_high"],
+                "fib_swing_low":    fib_data["fib_swing_low"],
             })
 
             time.sleep(0.25)
@@ -398,6 +470,17 @@ def pe_cell(pe):
     elif pe < 40: c = "#fed330"   # yellow — growth premium
     else:         c = "#ff9f43"   # orange — expensive
     return f'<td class="num pe-col" style="color:{c}" title="P/E Ratio">{pe:.1f}x</td>'
+
+def fib_cell(r):
+    fib_ret  = r.get("fib_retracement")
+    fib_zone = r.get("fib_zone", "—")
+    fib_c    = r.get("fib_color", "#8b949e")
+    fib_high = r.get("fib_swing_high", 0)
+    fib_low  = r.get("fib_swing_low", 0)
+    if fib_ret is None:
+        return '<td class="fib-td muted">—</td>'
+    tip = f"52wk High: ${fib_high:,.2f} | Low: ${fib_low:,.2f} | Retrace: {fib_ret:.1f}% from high"
+    return f'<td class="fib-td" title="{tip}"><span class="fib-badge" style="color:{fib_c}">{fib_zone}</span></td>'
 
 def div_badge_html(ticker, pays_div):
     if ticker in DIVIDEND_ARISTOCRATS:
@@ -451,9 +534,10 @@ def build_tier_html(tier_name, results):
       <td><span class="cat-badge" style="color:{cat_c};background:{cat_bg};border:1px solid {cat_c}40">{cat_lbl}</span></td>
       <td class="num muted mc">{r['market_cap']}</td>
       {pe_cell(r['pe_ratio'])}
+      {fib_cell(r)}
     </tr>
     <tr class="chart-row" id="chart-{ticker_safe}" style="display:none">
-      <td colspan="12">
+      <td colspan="13">
         <div class="chart-container">
           <div class="chart-header">
             <span class="chart-title">{r['ticker']} — {r['name']}</span>
@@ -483,6 +567,7 @@ def build_tier_html(tier_name, results):
             <th class="num">Price</th><th class="num">200-WMA</th>
             <th class="num">vs 200-WMA</th><th>Position</th>
             <th>Status</th><th class="num">Mkt Cap</th><th class="num">P/E Ratio</th>
+            <th class="fib-td" title="Fibonacci retracement from 52-week swing high/low. 🎯 = at key Fib level (38.2 / 50 / 61.8%). 📐 = inside golden zone (38.2–61.8% retracement). These levels act as support in an uptrend.">Fib Zone ℹ️</th>
           </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -664,6 +749,10 @@ th.num {{ text-align:right }}
 /* Years public */
 .yrs-pub {{ text-align:center; color:var(--muted) }}
 
+/* Fibonacci badge */
+.fib-td {{ text-align:center; min-width:110px }}
+.fib-badge {{ font-size:12px; font-weight:600; white-space:nowrap; cursor:default }}
+
 /* Position bar */
 .bar-td {{ min-width:130px }}
 .bar-wrap {{ width:120px }}
@@ -705,7 +794,7 @@ footer {{
 
 @media (max-width:768px) {{
   header, .stats, main, .strategy, .tier-nav {{ padding-left:14px; padding-right:14px }}
-  .mc, .pe-col, .yrs-pub {{ display:none }}
+  .mc, .pe-col, .yrs-pub, .fib-td {{ display:none }}
   .bar-td {{ display:none }}
 }}
 </style>
@@ -751,6 +840,10 @@ footer {{
     <span class="warn">†</span> = fewer than 200 weeks of price history available.
     <strong style="color:#fed330">👑 Crown</strong> = Dividend Aristocrat or King (25+ consecutive years of dividend increases, e.g. KO, PG, JNJ) ·
     <strong style="color:#26de81">Yes</strong> = pays a dividend · <span style="color:var(--muted)">No</span> = no dividend paid
+    <br><strong style="color:var(--text)">Fib Zone:</strong>
+    <span style="color:#26de81;font-weight:600">🎯 38.2% / 50% / 61.8%</span> = price is at a key Fibonacci retracement level of the 52-week swing (strong buy signal in an uptrend) ·
+    <span style="color:#4ecdc4;font-weight:600">📐 Golden Zone</span> = price is within the 38.2–61.8% retracement range ·
+    Fibonacci levels are calculated from the 52-week swing high and swing low.
     Data from Yahoo Finance via yfinance. <em>Not financial advice.</em>
   </div>
 </main>

@@ -793,7 +793,7 @@ footer {{
 }}
 
 /* ── Legend / Key section ── */
-.legend-section {{ margin-top:36px }}
+.legend-section {{ margin-top:0; margin-bottom:36px }}
 .legend-heading {{
   font-size:16px; font-weight:700; color:var(--text);
   margin-bottom:14px; padding-bottom:10px;
@@ -875,7 +875,6 @@ footer {{
 </div>
 
 <main>
-{all_sections}
   <div class="legend-section">
     <h2 class="legend-heading">📖 Column Reference Guide</h2>
     <div class="legend-grid">
@@ -980,6 +979,8 @@ footer {{
       Data via Yahoo Finance (yfinance) · <em>Not financial advice.</em>
     </div>
   </div>
+
+{all_sections}
 </main>
 
 <footer>

@@ -19,7 +19,7 @@ import time, json, math
 
 LARGE_CAP = [
     # Technology (16)
-    ("AAPL","Apple Inc.","Technology"),("MSFT","Microsoft Corp.","Technology"),
+    ("AAPL","Apple Inc.","Technology"),("MSFT","Microsoft Corp.","Technology"),("SPCX","SpaceX","Industrials"),
     ("GOOGL","Alphabet Inc.","Technology"),("META","Meta Platforms","Technology"),
     ("NVDA","NVIDIA Corp.","Technology"),("AVGO","Broadcom Inc.","Technology"),
     ("ADBE","Adobe Inc.","Technology"),("CRM","Salesforce Inc.","Technology"),
@@ -311,8 +311,15 @@ for tier_name, stocks in ALL_TIERS:
             stock = yf.Ticker(ticker)
             hist  = stock.history(period="5y", interval="1wk")
 
-            if len(hist) < 30:
+            if len(hist) < 4:
                 print(f"  [{idx:03d}/{total_stocks}] {ticker:6s}: insufficient data, skipping")
+                continue
+
+            # Drop incomplete current-week bar (close is NaN before market opens)
+            hist = hist.dropna(subset=['Close'])
+
+            if len(hist) < 4:
+                print(f"  [{idx:03d}/{total_stocks}] {ticker:6s}: insufficient data after dropna, skipping")
                 continue
 
             window = min(200, len(hist))

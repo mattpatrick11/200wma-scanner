@@ -1,0 +1,19 @@
+{
+  "last_updated": "2026-08-07",
+  "notes": "Curated non-routine conviction signals. Add entries here for notable discretionary buybacks or open-market insider purchases that aren't captured automatically via SEC Form 4.",
+  "signals": [
+    {
+      "ticker": "BABA",
+      "company": "Alibaba Group",
+      "type": "company_buyback",
+      "actor": "Alibaba Group (Company)",
+      "role": "Issuer",
+      "shares": 1200000,
+      "value_usd": null,
+      "date": "2026-07-08",
+      "date_display": "July 2026",
+      "note": "Repurchased 1M+ shares over several sessions. Management cited shares as significantly undervalued relative to intrinsic value. Non-scheduled — outside regular repurchase program.",
+      "scheduled": false
+    }
+  ]
+}

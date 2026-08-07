@@ -12,7 +12,7 @@ for pkg in ['yfinance', 'pandas']:
 
 import yfinance as yf
 import pandas as pd
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import time, json, math
 
 # ── Stock Universe ─────────────────────────────────────────────────────────────
@@ -441,6 +441,78 @@ for tier_name, stocks in ALL_TIERS:
     tier_results[tier_name] = results
     print()
 
+# ── Conviction Signals ────────────────────────────────────────────────────────
+import os as _os
+_CURATED_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'conviction_signals.json')
+_curated_signals = []
+if _os.path.exists(_CURATED_PATH):
+    try:
+        with open(_CURATED_PATH) as _f:
+            _curated_signals = json.load(_f).get('signals', [])
+        print(f"Loaded {len(_curated_signals)} curated conviction signal(s)")
+    except Exception as _ce:
+        print(f"Warning: could not load conviction_signals.json — {_ce}")
+
+conviction_map = {}  # ticker -> list of signal dicts
+for _sig in _curated_signals:
+    conviction_map.setdefault(_sig['ticker'], []).append(_sig)
+
+_CUTOFF   = datetime.now() - timedelta(days=90)
+_etf_set  = {t for t, _, _ in ETF}
+_all_tkrs = [r['ticker'] for _rv in tier_results.values() for r in _rv]
+
+print(f"Fetching insider transactions ({len(_all_tkrs)} tickers, skipping ETFs)...")
+_insider_rows = 0
+for _ticker in _all_tkrs:
+    if _ticker in _etf_set:
+        continue
+    try:
+        _stk = yf.Ticker(_ticker)
+        _df  = _stk.insider_transactions
+        if _df is None or (hasattr(_df, 'empty') and _df.empty):
+            time.sleep(0.04)
+            continue
+        for _, _row in _df.iterrows():
+            _txn = str(_row.get('Transaction', '')).lower()
+            if 'purchase' not in _txn and 'buy' not in _txn:
+                continue
+            _dv = _row.get('Date') or _row.get('Start Date')
+            if _dv is None:
+                continue
+            try:
+                _dts = pd.Timestamp(_dv)
+                if _dts < pd.Timestamp(_CUTOFF):
+                    continue
+            except Exception:
+                continue
+            _ins = str(_row.get('Insider', 'Unknown'))
+            _rel = str(_row.get('Relation', ''))
+            _shr = _row.get('#Shares', 0)
+            _val = _row.get('Value', None)
+            try:    _si = int(float(str(_shr).replace(',', '')))
+            except: _si = 0
+            try:    _vf = float(str(_val).replace(',','').replace('$','')) if _val else None
+            except: _vf = None
+            if _si <= 0:
+                continue
+            conviction_map.setdefault(_ticker, []).append({
+                'type':         'insider_purchase',
+                'actor':        _ins,
+                'role':         _rel,
+                'shares':       _si,
+                'value_usd':    round(_vf) if _vf else None,
+                'date':         _dts.strftime('%Y-%m-%d'),
+                'date_display': _dts.strftime('%B %Y'),
+                'note':         'Open-market purchase — always verify 10b5-1 plan status on SEC EDGAR before acting.',
+                'scheduled':    False,
+            })
+            _insider_rows += 1
+        time.sleep(0.06)
+    except Exception:
+        time.sleep(0.04)
+
+print(f"  ✓ {len(conviction_map)} tickers with conviction signals ({_insider_rows} automated insider rows)\n")
+
 # ── HTML Helpers ───────────────────────────────────────────────────────────────
 
 def pct_cell(pct):
@@ -497,9 +569,93 @@ def div_badge_html(ticker, pays_div):
     else:
         return '<span class="div-no">No</span>'
 
+def conv_cell(ticker, conv_map):
+    sigs = (conv_map or {}).get(ticker, [])
+    if not sigs:
+        return '<td class="conv-td muted">—</td>'
+    types  = {s.get('type', '') for s in sigs}
+    badges = ''
+    if 'insider_purchase' in types: badges += '👤'
+    if 'company_buyback'  in types: badges += '🏦'
+    tip = f"{len(sigs)} conviction signal(s) — see Leadership Conviction section below"
+    return f'<td class="conv-td"><a href="#tier-conviction" title="{tip}" style="text-decoration:none;font-size:14px">{badges}</a></td>'
+
 # ── Build Sections HTML ────────────────────────────────────────────────────────
 
-def build_tier_html(tier_name, results):
+def build_conviction_html(conv_map, all_res):
+    """Build the Leadership Conviction section."""
+    lookup = {r['ticker']: r for r in all_res}
+    flat   = []
+    for ticker, sigs in conv_map.items():
+        company = lookup.get(ticker, {}).get('name', ticker)
+        for s in sigs:
+            flat.append((ticker, company, s))
+    if not flat:
+        return ''
+    flat.sort(key=lambda x: x[2].get('date', '1900-01-01'), reverse=True)
+
+    cards = ''
+    for ticker, company, sig in flat:
+        stype     = sig.get('type', 'insider_purchase')
+        actor     = sig.get('actor', 'Unknown')
+        role      = sig.get('role', '')
+        shares    = sig.get('shares', 0)
+        value_usd = sig.get('value_usd')
+        date_disp = sig.get('date_display', sig.get('date', ''))
+        note      = sig.get('note', '')
+        scheduled = sig.get('scheduled', False)
+
+        emoji    = '🏦' if stype == 'company_buyback' else '👤'
+        type_lbl = 'Company Buyback' if stype == 'company_buyback' else 'Insider Purchase'
+        type_col = '#58a6ff' if stype == 'company_buyback' else '#26de81'
+        left_col = '#58a6ff' if stype == 'company_buyback' else '#26de81'
+
+        sched_badge = '' if scheduled else '<span class="conv-nsched">🔴 Non-Scheduled</span>'
+        shares_str  = f"{shares:,}" if shares else '—'
+        val_str = ''
+        if value_usd:
+            val_str = f'~${value_usd/1e6:.1f}M' if value_usd >= 1_000_000 else f'~${value_usd/1e3:.0f}K'
+        role_str = f' · {role}' if role and role not in ('Unknown', 'nan', '') else ''
+
+        cards += f"""
+    <div class="conv-card" style="border-left-color:{left_col}">
+      <div class="conv-top">
+        <div class="conv-left">
+          <span class="conv-ticker">{ticker}</span>
+          <span class="conv-company">{company}</span>
+        </div>
+        <div class="conv-right">
+          {sched_badge}
+          <span class="conv-type" style="color:{type_col};border-color:{type_col}40">{emoji} {type_lbl}</span>
+        </div>
+      </div>
+      <div class="conv-details">
+        <span class="conv-actor">{actor}{role_str}</span>
+        <span class="conv-sep">·</span>
+        <span class="conv-shares">{shares_str} shares{(' · ' + val_str) if val_str else ''}</span>
+        <span class="conv-sep">·</span>
+        <span class="conv-date">{date_disp}</span>
+      </div>
+      <div class="conv-note">{note}</div>
+    </div>"""
+
+    n = len(flat)
+    plural = 's' if n != 1 else ''
+    return f"""
+  <div class="conv-section" id="tier-conviction">
+    <div class="tier-header">
+      <div class="tier-left">
+        <h2 class="tier-title">💡 Leadership Conviction</h2>
+        <span class="tier-count">{n} signal{plural}</span>
+      </div>
+    </div>
+    <p class="conv-subtitle">Non-routine insider open-market purchases &amp; discretionary company buybacks — decision-makers putting real capital behind their conviction. Excludes pre-scheduled 10b5-1 plan transactions where identifiable. 👤 = insider purchase &nbsp;·&nbsp; 🏦 = company buyback</p>
+    <div class="conv-grid">{cards}
+    </div>
+    <p class="conv-footnote">⚠️ Automated insider data sourced via SEC Form 4 / Yahoo Finance. Always verify 10b5-1 plan status directly on SEC EDGAR before acting on any insider signal. Curated buyback entries (🏦) added manually — see <code>conviction_signals.json</code> to add new ones. <em>Not financial advice.</em></p>
+  </div>"""
+
+def build_tier_html(tier_name, results, conv_map=None):
     if not results:
         return ""
 
@@ -542,9 +698,10 @@ def build_tier_html(tier_name, results):
       <td class="num muted mc">{r['market_cap']}</td>
       {pe_cell(r['pe_ratio'])}
       {fib_cell(r)}
+      {conv_cell(r['ticker'], conv_map)}
     </tr>
     <tr class="chart-row" id="chart-{ticker_safe}" style="display:none">
-      <td colspan="13">
+      <td colspan="14">
         <div class="chart-container">
           <div class="chart-header">
             <span class="chart-title">{r['ticker']} — {r['name']}</span>
@@ -575,6 +732,7 @@ def build_tier_html(tier_name, results):
             <th class="num">vs 200-WMA</th><th>Position</th>
             <th>Status</th><th class="num">Mkt Cap</th><th class="num">P/E Ratio</th>
             <th class="fib-td" title="Fibonacci retracement from 52-week swing high/low. 🎯 = at key Fib level (38.2 / 50 / 61.8%). 📐 = inside golden zone (38.2–61.8% retracement). These levels act as support in an uptrend.">Fib Zone ℹ️</th>
+            <th class="conv-th" title="💡 Leadership Conviction — 👤 insider open-market purchase or 🏦 non-scheduled company buyback in the last 90 days. Click to jump to detail section.">💡</th>
           </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -584,11 +742,12 @@ def build_tier_html(tier_name, results):
 
 all_sections = ""
 for tier_name, results in tier_results.items():
-    all_sections += build_tier_html(tier_name, results)
+    all_sections += build_tier_html(tier_name, results, conv_map=conviction_map)
 
 # ── Global Summary Stats ───────────────────────────────────────────────────────
 
 all_results = [r for results in tier_results.values() for r in results]
+conviction_section = build_conviction_html(conviction_map, all_results)
 global_counts = {c: len([r for r in all_results if r['category'] == c]) for c in CAT_ORDER}
 
 summary_cards = ""
@@ -846,9 +1005,35 @@ footer {{
   .legend-grid {{ grid-template-columns:1fr }}
 }}
 
+/* Conviction column */
+.conv-th {{ text-align:center; min-width:44px; font-size:14px }}
+.conv-td {{ text-align:center }}
+/* Conviction section */
+.conv-section {{ margin-bottom:36px }}
+.conv-subtitle {{ font-size:13px; color:var(--muted); margin-bottom:16px; font-style:italic; line-height:1.6; max-width:860px }}
+.conv-grid {{ display:flex; flex-direction:column; gap:12px }}
+.conv-card {{
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:8px; padding:16px 18px; border-left:3px solid #58a6ff;
+}}
+.conv-top {{ display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px }}
+.conv-left {{ display:flex; align-items:center; gap:10px }}
+.conv-ticker {{ font-family:var(--mono); font-weight:700; font-size:15px; color:#58a6ff }}
+.conv-company {{ font-size:13px; color:var(--muted) }}
+.conv-right {{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }}
+.conv-nsched {{ font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; background:#3a141499; color:#ff6b6b; border:1px solid #ff6b6b40 }}
+.conv-type {{ font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; border:1px solid }}
+.conv-details {{ font-size:13px; color:var(--muted); margin-bottom:6px; display:flex; flex-wrap:wrap; gap:6px; align-items:center }}
+.conv-actor {{ color:var(--text); font-weight:500 }}
+.conv-shares {{ color:var(--text) }}
+.conv-date {{ color:var(--muted) }}
+.conv-sep {{ color:var(--border) }}
+.conv-note {{ font-size:12px; color:var(--muted); font-style:italic; line-height:1.5 }}
+.conv-footnote {{ margin-top:14px; font-size:12px; color:var(--muted); line-height:1.7; padding:10px 14px; background:var(--bg2); border:1px solid var(--border); border-radius:6px }}
+.conv-footnote code {{ font-family:var(--mono); color:#58a6ff; font-size:11px }}
 @media (max-width:768px) {{
   header, .stats, main, .strategy, .tier-nav {{ padding-left:14px; padding-right:14px }}
-  .mc, .pe-col, .yrs-pub, .fib-td {{ display:none }}
+  .mc, .pe-col, .yrs-pub, .fib-td, .conv-td, .conv-th {{ display:none }}
   .bar-td {{ display:none }}
 }}
 </style>
@@ -879,6 +1064,7 @@ footer {{
   <a href="#tier-mid-cap">🚀 Mid Cap ({len(tier_results.get("Mid Cap",[]))})</a>
   <a href="#tier-small-cap">🌱 Small Cap ({len(tier_results.get("Small Cap",[]))})</a>
   <a href="#tier-etfs">🌎 ETFs ({len(tier_results.get("ETFs",[]))})</a>
+  <a href="#tier-conviction">💡 Conviction ({len(conviction_map)})</a>
 </div>
 
 <main>
@@ -988,11 +1174,12 @@ footer {{
   </div>
 
 {all_sections}
+{conviction_section}
 </main>
 
 <footer>
-  <strong>200-Week MA Stock Scanner v3</strong> · Built by Tuchus 🐶 ·
-  175 stocks · Data: Yahoo Finance · Not financial advice · {now_str}
+  <strong>200-Week MA Stock Scanner v4</strong> · Built by Tuchus 🐶 ·
+  230 stocks · Leadership Conviction signals · Data: Yahoo Finance · Not financial advice · {now_str}
 </footer>
 
 <script>

@@ -781,9 +781,13 @@ if _port['benchmark_spy_entry'] is None and _spy_cur:
 def _buy_reason(r, shares):
     pct  = r['pct_diff']
     sec  = r['sector']
-    cat  = 'Deep Value' if r['category'] == 'deep_value' else 'Undervalued'
+    cat  = r['category']
     pe   = r.get('pe_ratio')
-    notes = [f"Trading {abs(pct):.1f}% below its 200-WMA ({cat}) in the {sec} sector."]
+    if cat == 'buy_zone':
+        pos_desc = f"Trading right at its 200-WMA ({pct:+.1f}%) — ideal Buy Zone entry in the {sec} sector."
+    else:
+        pos_desc = f"Trading {abs(pct):.1f}% below its 200-WMA (Undervalued) in the {sec} sector — conviction buy near the average."
+    notes = [pos_desc]
     if r.get('fib_is_buy'):
         notes.append(f"Fibonacci confluence: {r.get('fib_zone','—')}.")
     if pe and 0 < pe < 20:
@@ -833,10 +837,13 @@ for _h in _port['holdings']:
     _s = _res_map.get(_h['ticker'], {}).get('sector', 'Other')
     _scnt[_s] = _scnt.get(_s, 0) + 1
 
+# Strategy: buy stocks AT or near the 200-WMA (Buy Zone first, then Undervalued).
+# Skip Deep Value — no falling knives. All cap sizes eligible.
+# Buy Zone sorted by proximity to WMA; Undervalued by least negative first.
 _cands = sorted(
     [r for r in _all_results_flat
-     if r['category'] in ('deep_value', 'undervalued') and r['ticker'] not in _held],
-    key=lambda x: x['pct_diff']
+     if r['category'] in ('buy_zone', 'undervalued') and r['ticker'] not in _held],
+    key=lambda x: (0 if x['category'] == 'buy_zone' else 1, abs(x['pct_diff']))
 )
 
 for _c in _cands:
@@ -1027,6 +1034,7 @@ def build_portfolio_html(port, res_map, spy_data, starting=100_000.0):
     <p style="font-size:13px;color:var(--muted);margin-bottom:16px;font-style:italic">
       $100,000 starting capital &middot; Rules-based 200-WMA strategy &middot;
       Buy Deep Value &amp; Undervalued &middot; Sell Extended &middot;
+      Buys at or near the 200-WMA (Buy Zone &amp; Undervalued) &middot; Sells when Extended &middot;
       Max {_PORT_MAX_POS} positions &middot; Max {_PORT_MAX_SECTOR} per sector &middot;
       No options or leverage &middot; Not financial advice.
     </p>

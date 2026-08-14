@@ -56,7 +56,7 @@ LARGE_CAP = [
     ("MDT","Medtronic plc","Healthcare"),("GILD","Gilead Sciences","Healthcare"),
     ("ISRG","Intuitive Surgical","Healthcare"),("SYK","Stryker Corp.","Healthcare"),
     ("BDX","Becton Dickinson","Healthcare"),("NVO","Novo Nordisk A/S","Healthcare"),
-    ("BMY","Bristol-Myers Squibb","Healthcare"),("OSCR","Oscar Health Inc.","Healthcare"),
+    ("BMY","Bristol-Myers Squibb","Healthcare"),("BSX","Boston Scientific Corp.","Healthcare"),("OSCR","Oscar Health Inc.","Healthcare"),
     # Communication (5)
     ("NFLX","Netflix Inc.","Communication"),("DIS","Walt Disney Co.","Communication"),
     ("T","AT&T Inc.","Communication"),("VZ","Verizon Comm.","Communication"),

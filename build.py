@@ -740,6 +740,386 @@ def build_tier_html(tier_name, results, conv_map=None):
     </div>
   </div>"""
 
+# ── Portfolio Management ─────────────────────────────────────────────────────
+
+_PORT_PATH         = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'portfolio.json')
+_PORT_STARTING     = 100_000.0
+_PORT_POS_SIZE     = 5_000.0    # target $ per position
+_PORT_MAX_POS      = 20
+_PORT_MAX_SECTOR   = 2          # max positions per sector
+_PORT_CASH_RESERVE = 5_000.0   # always keep $5k liquid
+_today             = datetime.now(tz=timezone.utc).strftime('%Y-%m-%d')
+
+if _os.path.exists(_PORT_PATH):
+    with open(_PORT_PATH) as _pf:
+        _port = json.load(_pf)
+else:
+    _port = {
+        'starting_capital':     _PORT_STARTING,
+        'cash':                 _PORT_STARTING,
+        'holdings':             [],
+        'trades':               [],
+        'inception_date':       _today,
+        'last_updated':         _today,
+        'benchmark_spy_entry':  None,
+        'daily_values':         [],
+    }
+
+_port['last_updated'] = _today
+
+# Build ticker → result lookup (all tiers)
+_all_results_flat = [r for rv in tier_results.values() for r in rv]
+_res_map = {r['ticker']: r for r in _all_results_flat}
+
+# Set SPY benchmark entry price on first run
+_spy_cur = _res_map.get('SPY')
+if _port['benchmark_spy_entry'] is None and _spy_cur:
+    _port['benchmark_spy_entry'] = _spy_cur['price']
+
+# ── Reason generators ──────────────────────────────────────────────────────────
+
+def _buy_reason(r, shares):
+    pct  = r['pct_diff']
+    sec  = r['sector']
+    cat  = 'Deep Value' if r['category'] == 'deep_value' else 'Undervalued'
+    pe   = r.get('pe_ratio')
+    notes = [f"Trading {abs(pct):.1f}% below its 200-WMA ({cat}) in the {sec} sector."]
+    if r.get('fib_is_buy'):
+        notes.append(f"Fibonacci confluence: {r.get('fib_zone','—')}.")
+    if pe and 0 < pe < 20:
+        notes.append(f"P/E {pe:.1f}x — value territory.")
+    elif pe and 20 <= pe <= 30:
+        notes.append(f"P/E {pe:.1f}x — fairly priced.")
+    notes.append(f"Opened {shares} shares @ ${r['price']:.2f}.")
+    return ' '.join(notes)
+
+def _sell_reason(r, h, gain_pct):
+    word = 'profit' if gain_pct >= 0 else 'loss'
+    return (f"{r['ticker']} reached Extended territory ({r['pct_diff']:+.1f}% above 200-WMA). "
+            f"200-WMA thesis complete. Closed {h['shares']} shares for "
+            f"{abs(gain_pct):.1f}% {word} "
+            f"(${h['entry_price']:.2f} \u2192 ${r['price']:.2f}).")
+
+# ── SELL: exit Extended positions ─────────────────────────────────────────────
+
+_kept = []
+for _h in _port['holdings']:
+    _cur = _res_map.get(_h['ticker'])
+    if _cur and _cur['category'] == 'extended':
+        _proceeds = _h['shares'] * _cur['price']
+        _gpct     = (_cur['price'] - _h['entry_price']) / _h['entry_price'] * 100
+        _port['cash'] += _proceeds
+        _port['trades'].append({
+            'date':          _today,
+            'action':        'SELL',
+            'ticker':        _h['ticker'],
+            'name':          _cur['name'],
+            'shares':        _h['shares'],
+            'price':         round(_cur['price'], 2),
+            'total':         round(_proceeds, 2),
+            'gain_loss_pct': round(_gpct, 2),
+            'reason':        _sell_reason(_cur, _h, _gpct),
+            'pct_vs_wma':    _cur['pct_diff'],
+        })
+    else:
+        _kept.append(_h)
+_port['holdings'] = _kept
+
+# ── BUY: enter Deep Value / Undervalued positions ─────────────────────────────
+
+_held = {_h['ticker'] for _h in _port['holdings']}
+_scnt = {}
+for _h in _port['holdings']:
+    _s = _res_map.get(_h['ticker'], {}).get('sector', 'Other')
+    _scnt[_s] = _scnt.get(_s, 0) + 1
+
+_cands = sorted(
+    [r for r in _all_results_flat
+     if r['category'] in ('deep_value', 'undervalued') and r['ticker'] not in _held],
+    key=lambda x: x['pct_diff']
+)
+
+for _c in _cands:
+    if len(_port['holdings']) >= _PORT_MAX_POS:
+        break
+    if _port['cash'] - _PORT_POS_SIZE < _PORT_CASH_RESERVE:
+        break
+    _sec = _c['sector']
+    if _scnt.get(_sec, 0) >= _PORT_MAX_SECTOR:
+        continue
+    _price  = _c['price']
+    _shares = int(_PORT_POS_SIZE / _price)
+    if _shares == 0:
+        continue
+    _cost = _shares * _price
+    _port['cash'] -= _cost
+    _scnt[_sec] = _scnt.get(_sec, 0) + 1
+    _held.add(_c['ticker'])
+    _port['holdings'].append({
+        'ticker':           _c['ticker'],
+        'name':             _c['name'],
+        'sector':           _sec,
+        'shares':           _shares,
+        'entry_price':      round(_price, 2),
+        'entry_date':       _today,
+        'entry_pct_vs_wma': round(_c['pct_diff'], 2),
+        'entry_category':   _c['category'],
+        'reason':           _buy_reason(_c, _shares),
+    })
+    _port['trades'].append({
+        'date':          _today,
+        'action':        'BUY',
+        'ticker':        _c['ticker'],
+        'name':          _c['name'],
+        'shares':        _shares,
+        'price':         round(_price, 2),
+        'total':         round(_cost, 2),
+        'gain_loss_pct': None,
+        'reason':        _buy_reason(_c, _shares),
+        'pct_vs_wma':    round(_c['pct_diff'], 2),
+    })
+
+# ── Daily value snapshot ───────────────────────────────────────────────────────
+
+_inv_val = sum(
+    _h['shares'] * _res_map[_h['ticker']]['price']
+    for _h in _port['holdings'] if _h['ticker'] in _res_map
+)
+_total_val = _port['cash'] + _inv_val
+_bench_val = None
+if _port['benchmark_spy_entry'] and _spy_cur:
+    _bench_val = (_PORT_STARTING / _port['benchmark_spy_entry']) * _spy_cur['price']
+
+_port['daily_values'] = [dv for dv in _port['daily_values'] if dv['date'] != _today]
+_port['daily_values'].append({
+    'date':            _today,
+    'total_value':     round(_total_val, 2),
+    'cash':            round(_port['cash'], 2),
+    'invested':        round(_inv_val, 2),
+    'benchmark_value': round(_bench_val, 2) if _bench_val else None,
+})
+
+with open(_PORT_PATH, 'w') as _pf:
+    json.dump(_port, _pf, indent=2)
+
+_port_ret = (_total_val - _PORT_STARTING) / _PORT_STARTING * 100
+print(f"\n\U0001f4bc Portfolio: ${_total_val:,.2f} | Cash: ${_port['cash']:,.2f} | {len(_port['holdings'])} positions | Return: {_port_ret:+.2f}%")
+if _bench_val:
+    _bench_ret = (_bench_val - _PORT_STARTING) / _PORT_STARTING * 100
+    print(f"   SPY Benchmark: ${_bench_val:,.2f} ({_bench_ret:+.2f}%) | Alpha: {_port_ret - _bench_ret:+.2f}%")
+
+# ── Portfolio HTML Builder ────────────────────────────────────────────────────
+
+def build_portfolio_html(port, res_map, spy_data, starting=100_000.0):
+    holdings   = port['holdings']
+    cash       = port['cash']
+    inv_val    = sum(h['shares'] * res_map[h['ticker']]['price']
+                     for h in holdings if h['ticker'] in res_map)
+    total_val  = cash + inv_val
+    total_ret  = (total_val - starting) / starting * 100
+    total_gain = total_val - starting
+    gc         = '#26de81' if total_gain >= 0 else '#ff6b6b'
+    gs         = '+' if total_gain >= 0 else ''
+    rs         = '+' if total_ret  >= 0 else ''
+
+    # Benchmark
+    spy_entry  = port.get('benchmark_spy_entry')
+    bench_val  = None
+    bench_ret_str = '—'
+    bench_val_str = '—'
+    alpha_card = ''
+    if spy_entry and spy_data:
+        bench_val    = (starting / spy_entry) * spy_data['price']
+        bench_ret    = (bench_val - starting) / starting * 100
+        alpha        = total_ret - bench_ret
+        ac           = '#26de81' if alpha >= 0 else '#ff6b6b'
+        a_s          = '+' if alpha >= 0 else ''
+        b_s          = '+' if bench_ret >= 0 else ''
+        bench_ret_str = f'{b_s}{bench_ret:.2f}%'
+        bench_val_str = f'${bench_val:,.2f}'
+        alpha_card    = (f'<div class="port-stat-card" style="border-top-color:#a371f7">'
+                         f'<div class="port-stat-num" style="color:{ac}">{a_s}{alpha:.2f}%</div>'
+                         f'<div class="port-stat-lbl">Alpha vs SPY</div></div>')
+
+    # Holdings table rows
+    h_rows = ''
+    for h in sorted(holdings, key=lambda x: -(res_map.get(x['ticker'],{}).get('price',0)*x['shares'])):
+        tkr = h['ticker']
+        cur = res_map.get(tkr)
+        if not cur: continue
+        cur_val  = h['shares'] * cur['price']
+        gain     = cur_val - h['shares'] * h['entry_price']
+        gain_pct = (cur['price'] - h['entry_price']) / h['entry_price'] * 100
+        hgc      = '#26de81' if gain >= 0 else '#ff6b6b'
+        hgs      = '+' if gain >= 0 else ''
+        cat_c, cat_bg = CAT_COLORS[cur['category']]
+        cat_lbl  = CAT_LABELS[cur['category']].split(' ', 1)[1]
+        h_rows  += (f'<tr>'
+                    f'<td><span class="ticker" style="color:#58a6ff">{tkr}</span></td>'
+                    f'<td class="company">{h["name"]}</td>'
+                    f'<td><span class="sector-pill">{h["sector"]}</span></td>'
+                    f'<td class="num">{h["shares"]}</td>'
+                    f'<td class="num">${h["entry_price"]:,.2f}</td>'
+                    f'<td class="num">${cur["price"]:,.2f}</td>'
+                    f'<td class="num" style="color:{hgc};font-weight:600">{hgs}${abs(gain):,.2f}</td>'
+                    f'<td class="num" style="color:{hgc};font-weight:600">{hgs}{abs(gain_pct):.1f}%</td>'
+                    f'<td class="num">${cur_val:,.2f}</td>'
+                    f'<td><span class="cat-badge" style="color:{cat_c};background:{cat_bg};border:1px solid {cat_c}40">{cat_lbl}</span></td>'
+                    f'</tr>')
+
+    # Trade ledger rows (newest first)
+    t_rows = ''
+    for t in reversed(port['trades']):
+        act = t['action']
+        ac2 = '#26de81' if act == 'BUY' else '#ff9f43'
+        gl  = ''
+        if t.get('gain_loss_pct') is not None:
+            g   = t['gain_loss_pct']
+            gc2 = '#26de81' if g >= 0 else '#ff6b6b'
+            gl  = f'<span style="color:{gc2};font-weight:600">{"+" if g>=0 else ""}{g:.1f}%</span>'
+        t_rows += (f'<tr>'
+                   f'<td class="muted">{t["date"]}</td>'
+                   f'<td><span style="color:{ac2};font-weight:700;font-family:var(--mono)">{act}</span></td>'
+                   f'<td><span class="ticker" style="color:#58a6ff">{t["ticker"]}</span></td>'
+                   f'<td class="company">{t["name"]}</td>'
+                   f'<td class="num">{t["shares"]}</td>'
+                   f'<td class="num">${t["price"]:,.2f}</td>'
+                   f'<td class="num">${t["total"]:,.2f}</td>'
+                   f'<td class="num">{gl}</td>'
+                   f'<td class="trade-reason">{t["reason"]}</td>'
+                   f'</tr>')
+
+    # Chart data
+    dv         = port['daily_values']
+    ch_labels  = json.dumps([x['date']            for x in dv])
+    ch_port    = json.dumps([x['total_value']      for x in dv])
+    ch_bench   = json.dumps([x.get('benchmark_value') for x in dv])
+    inception  = port.get('inception_date', '—')
+    n_trades   = len(port['trades'])
+    n_hold     = len(holdings)
+
+    holdings_section = (
+        f'<p style="color:var(--muted);font-size:13px">No open positions yet.</p>' if not h_rows else
+        f'<div class="table-wrap" style="margin-bottom:24px"><table>'
+        f'<thead><tr><th>Ticker</th><th>Name</th><th>Sector</th>'
+        f'<th class="num">Shares</th><th class="num">Entry</th><th class="num">Current</th>'
+        f'<th class="num">Gain/Loss $</th><th class="num">Gain/Loss %</th>'
+        f'<th class="num">Value</th><th>Status</th></tr></thead>'
+        f'<tbody>{h_rows}</tbody></table></div>'
+    )
+    trades_section = (
+        f'<p style="color:var(--muted);font-size:13px">No trades yet.</p>' if not t_rows else
+        f'<div class="table-wrap"><table>'
+        f'<thead><tr><th>Date</th><th>Action</th><th>Ticker</th><th>Name</th>'
+        f'<th class="num">Shares</th><th class="num">Price</th><th class="num">Total</th>'
+        f'<th class="num">Return</th><th>Reasoning</th></tr></thead>'
+        f'<tbody>{t_rows}</tbody></table></div>'
+    )
+
+    return f"""
+  <div class="tier-section" id="portfolio">
+    <div class="tier-header">
+      <div class="tier-left">
+        <h2 class="tier-title">\U0001f4bc Tuchus Capital — Mock Portfolio</h2>
+        <span class="tier-count">Since {inception}</span>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;font-style:italic">
+      $100,000 starting capital &middot; Rules-based 200-WMA strategy &middot;
+      Buy Deep Value &amp; Undervalued &middot; Sell Extended &middot;
+      Max {_PORT_MAX_POS} positions &middot; Max {_PORT_MAX_SECTOR} per sector &middot;
+      No options or leverage &middot; Not financial advice.
+    </p>
+
+    <div class="port-stats">
+      <div class="port-stat-card" style="border-top-color:{gc}">
+        <div class="port-stat-num" style="color:{gc}">${total_val:,.2f}</div>
+        <div class="port-stat-lbl">Portfolio Value</div>
+      </div>
+      <div class="port-stat-card" style="border-top-color:{gc}">
+        <div class="port-stat-num" style="color:{gc}">{rs}{abs(total_ret):.2f}%</div>
+        <div class="port-stat-lbl">Total Return</div>
+      </div>
+      <div class="port-stat-card" style="border-top-color:{gc}">
+        <div class="port-stat-num" style="color:{gc}">{gs}${abs(total_gain):,.2f}</div>
+        <div class="port-stat-lbl">Gain / Loss</div>
+      </div>
+      <div class="port-stat-card" style="border-top-color:#58a6ff">
+        <div class="port-stat-num" style="color:#58a6ff">{bench_ret_str}</div>
+        <div class="port-stat-lbl">SPY Return</div>
+      </div>
+      {alpha_card}
+      <div class="port-stat-card" style="border-top-color:#a4b0be">
+        <div class="port-stat-num" style="color:#a4b0be">${cash:,.2f}</div>
+        <div class="port-stat-lbl">Cash</div>
+      </div>
+      <div class="port-stat-card" style="border-top-color:#a4b0be">
+        <div class="port-stat-num" style="color:#a4b0be">{n_hold}</div>
+        <div class="port-stat-lbl">Open Positions</div>
+      </div>
+    </div>
+
+    <div class="port-chart-wrap">
+      <div class="chart-header">
+        <span class="chart-title">Portfolio vs SPY Benchmark</span>
+        <span class="chart-sub">Daily value since inception &middot; $100,000 starting capital</span>
+      </div>
+      <canvas id="port-perf-chart" height="100"></canvas>
+    </div>
+
+    <h3 class="port-h3">\U0001f4ca Current Holdings ({n_hold} positions)</h3>
+    {holdings_section}
+
+    <h3 class="port-h3">\U0001f4cb Trade Ledger ({n_trades} trades)</h3>
+    {trades_section}
+  </div>
+
+  <script>
+  (function() {{
+    var pd = {{labels:{ch_labels},portfolio:{ch_port},benchmark:{ch_bench}}};
+    if (!pd.labels || pd.labels.length === 0) return;
+    var ctx = document.getElementById('port-perf-chart').getContext('2d');
+    new Chart(ctx, {{
+      type: 'line',
+      data: {{
+        labels: pd.labels,
+        datasets: [
+          {{
+            label: 'Tuchus Capital',
+            data: pd.portfolio,
+            borderColor: '#26de81', borderWidth: 2,
+            backgroundColor: 'rgba(38,222,129,0.08)', fill: true,
+            pointRadius: pd.labels.length <= 10 ? 4 : 0, tension: 0.3,
+          }},
+          {{
+            label: 'SPY (Benchmark)',
+            data: pd.benchmark,
+            borderColor: '#58a6ff', borderWidth: 2,
+            borderDash: [5,3], backgroundColor: 'transparent', fill: false,
+            pointRadius: pd.labels.length <= 10 ? 4 : 0, tension: 0.3,
+          }},
+        ]
+      }},
+      options: {{
+        responsive: true, maintainAspectRatio: true,
+        interaction: {{mode:'index', intersect:false}},
+        plugins: {{
+          legend: {{display:true, labels:{{color:'#8b949e',font:{{size:11}},boxWidth:20,boxHeight:2}}}},
+          tooltip: {{
+            backgroundColor:'#161b22', borderColor:'#30363d', borderWidth:1,
+            titleColor:'#e6edf3', bodyColor:'#8b949e', padding:10,
+            callbacks: {{label: ctx => ' ' + ctx.dataset.label + ': $' + (ctx.parsed.y||0).toLocaleString('en-US',{{minimumFractionDigits:2,maximumFractionDigits:2}})}}
+          }}
+        }},
+        scales: {{
+          x: {{grid:{{color:'#21262d'}}, ticks:{{color:'#8b949e',font:{{size:10}},maxTicksLimit:8,maxRotation:0}}}},
+          y: {{grid:{{color:'#21262d'}}, ticks:{{color:'#8b949e',font:{{size:10}},callback:v=>'$'+v.toLocaleString()}}}}
+        }}
+      }}
+    }});
+  }})();
+  </script>"""
+
 all_sections = ""
 for tier_name, results in tier_results.items():
     all_sections += build_tier_html(tier_name, results, conv_map=conviction_map)
@@ -748,6 +1128,7 @@ for tier_name, results in tier_results.items():
 
 all_results = [r for results in tier_results.values() for r in results]
 conviction_section = build_conviction_html(conviction_map, all_results)
+portfolio_section  = build_portfolio_html(_port, _res_map, _spy_cur)
 global_counts = {c: len([r for r in all_results if r['category'] == c]) for c in CAT_ORDER}
 
 summary_cards = ""
@@ -1036,6 +1417,23 @@ footer {{
   .mc, .pe-col, .yrs-pub, .fib-td, .conv-td, .conv-th {{ display:none }}
   .bar-td {{ display:none }}
 }}
+/* ── Portfolio ── */
+.port-stats {{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px }}
+.port-stat-card {{
+  background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+  padding:12px 18px; flex:1; min-width:120px; text-align:center; border-top:3px solid #30363d;
+}}
+.port-stat-num {{ font-size:22px; font-weight:700; line-height:1 }}
+.port-stat-lbl {{ font-size:11px; color:var(--muted); margin-top:4px }}
+.port-chart-wrap {{
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:8px; padding:16px 20px; margin-bottom:20px;
+}}
+.trade-reason {{
+  font-size:12px; color:var(--muted); max-width:380px;
+  white-space:normal; line-height:1.5; padding-right:8px;
+}}
+.port-h3 {{ font-size:15px; font-weight:700; margin:24px 0 10px; color:var(--text) }}
 </style>
 </head>
 <body>
@@ -1065,6 +1463,7 @@ footer {{
   <a href="#tier-small-cap">🌱 Small Cap ({len(tier_results.get("Small Cap",[]))})</a>
   <a href="#tier-etfs">🌎 ETFs ({len(tier_results.get("ETFs",[]))})</a>
   <a href="#tier-conviction">💡 Conviction ({len(conviction_map)})</a>
+  <a href="#portfolio">💼 Portfolio</a>
 </div>
 
 <main>
@@ -1175,6 +1574,7 @@ footer {{
 
 {all_sections}
 {conviction_section}
+{portfolio_section}
 </main>
 
 <footer>

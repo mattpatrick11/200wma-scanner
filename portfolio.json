@@ -375,10 +375,10 @@
     },
     {
       "date": "2026-08-24",
-      "total_value": 99912.38,
+      "total_value": 100095.51,
       "cash": 31374.43,
-      "invested": 68537.95,
-      "benchmark_value": 98672.71
+      "invested": 68721.08,
+      "benchmark_value": 98536.12
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 26378.23,
+  "cash": 21638.98,
   "holdings": [
     {
       "ticker": "DOCU",
@@ -166,6 +166,17 @@
       "entry_pct_vs_wma": -8.72,
       "entry_category": "undervalued",
       "reason": "Trading 8.7% below its 200-WMA (Undervalued) in the Energy sector \u2014 conviction buy near the average. Opened 757 shares @ $6.60."
+    },
+    {
+      "ticker": "SHW",
+      "name": "Sherwin-Williams",
+      "sector": "Materials",
+      "shares": 15,
+      "entry_price": 315.95,
+      "entry_date": "2026-09-10",
+      "entry_pct_vs_wma": 2.44,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (+2.4%) \u2014 ideal Buy Zone entry in the Materials sector. P/E 29.1x \u2014 fairly priced. Opened 15 shares @ $315.95."
     }
   ],
   "trades": [
@@ -348,6 +359,18 @@
       "gain_loss_pct": null,
       "reason": "Trading 8.7% below its 200-WMA (Undervalued) in the Energy sector \u2014 conviction buy near the average. Opened 757 shares @ $6.60.",
       "pct_vs_wma": -8.72
+    },
+    {
+      "date": "2026-09-10",
+      "action": "BUY",
+      "ticker": "SHW",
+      "name": "Sherwin-Williams",
+      "shares": 15,
+      "price": 315.95,
+      "total": 4739.25,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (+2.4%) \u2014 ideal Buy Zone entry in the Materials sector. P/E 29.1x \u2014 fairly priced. Opened 15 shares @ $315.95.",
+      "pct_vs_wma": 2.44
     }
   ],
   "inception_date": "2026-08-14",
@@ -517,10 +540,10 @@
     },
     {
       "date": "2026-09-10",
-      "total_value": 96982.46,
-      "cash": 26378.23,
-      "invested": 70604.23,
-      "benchmark_value": 98244.89
+      "total_value": 96892.05,
+      "cash": 21638.98,
+      "invested": 75253.07,
+      "benchmark_value": 97756.5
     }
   ]
 }

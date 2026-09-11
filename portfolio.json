@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 21638.98,
+  "cash": 11862.939999999999,
   "holdings": [
     {
       "ticker": "DOCU",
@@ -177,6 +177,28 @@
       "entry_pct_vs_wma": 2.44,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (+2.4%) \u2014 ideal Buy Zone entry in the Materials sector. P/E 29.1x \u2014 fairly priced. Opened 15 shares @ $315.95."
+    },
+    {
+      "ticker": "IEF",
+      "name": "iShares 7-10 Year Treasury Bond",
+      "sector": "Fixed Income",
+      "shares": 54,
+      "entry_price": 91.18,
+      "entry_date": "2026-09-11",
+      "entry_pct_vs_wma": 2.84,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (+2.8%) \u2014 ideal Buy Zone entry in the Fixed Income sector. Opened 54 shares @ $91.18."
+    },
+    {
+      "ticker": "HON",
+      "name": "Honeywell Intl.",
+      "sector": "Industrials",
+      "shares": 24,
+      "entry_price": 202.18,
+      "entry_date": "2026-09-11",
+      "entry_pct_vs_wma": 0.34,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (+0.3%) \u2014 ideal Buy Zone entry in the Industrials sector. P/E 7.9x \u2014 value territory. Opened 24 shares @ $202.18."
     }
   ],
   "trades": [
@@ -371,10 +393,34 @@
       "gain_loss_pct": null,
       "reason": "Trading right at its 200-WMA (+2.4%) \u2014 ideal Buy Zone entry in the Materials sector. P/E 29.1x \u2014 fairly priced. Opened 15 shares @ $315.95.",
       "pct_vs_wma": 2.44
+    },
+    {
+      "date": "2026-09-11",
+      "action": "BUY",
+      "ticker": "IEF",
+      "name": "iShares 7-10 Year Treasury Bond",
+      "shares": 54,
+      "price": 91.18,
+      "total": 4923.72,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (+2.8%) \u2014 ideal Buy Zone entry in the Fixed Income sector. Opened 54 shares @ $91.18.",
+      "pct_vs_wma": 2.84
+    },
+    {
+      "date": "2026-09-11",
+      "action": "BUY",
+      "ticker": "HON",
+      "name": "Honeywell Intl.",
+      "shares": 24,
+      "price": 202.18,
+      "total": 4852.32,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (+0.3%) \u2014 ideal Buy Zone entry in the Industrials sector. P/E 7.9x \u2014 value territory. Opened 24 shares @ $202.18.",
+      "pct_vs_wma": 0.34
     }
   ],
   "inception_date": "2026-08-14",
-  "last_updated": "2026-09-10",
+  "last_updated": "2026-09-11",
   "benchmark_spy_entry": 776.02,
   "daily_values": [
     {
@@ -544,6 +590,13 @@
       "cash": 21638.98,
       "invested": 75253.07,
       "benchmark_value": 97756.5
+    },
+    {
+      "date": "2026-09-11",
+      "total_value": 78136.42,
+      "cash": 11862.94,
+      "invested": 66273.48,
+      "benchmark_value": null
     }
   ]
 }

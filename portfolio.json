@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 11862.939999999999,
+  "cash": 6892.379999999999,
   "holdings": [
     {
       "ticker": "DOCU",
@@ -199,6 +199,17 @@
       "entry_pct_vs_wma": 0.34,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (+0.3%) \u2014 ideal Buy Zone entry in the Industrials sector. P/E 7.9x \u2014 value territory. Opened 24 shares @ $202.18."
+    },
+    {
+      "ticker": "RBLX",
+      "name": "Roblox Corp.",
+      "sector": "Communication",
+      "shares": 98,
+      "entry_price": 50.72,
+      "entry_date": "2026-09-14",
+      "entry_pct_vs_wma": -9.22,
+      "entry_category": "undervalued",
+      "reason": "Trading 9.2% below its 200-WMA (Undervalued) in the Communication sector \u2014 conviction buy near the average. Opened 98 shares @ $50.72."
     }
   ],
   "trades": [
@@ -417,10 +428,22 @@
       "gain_loss_pct": null,
       "reason": "Trading right at its 200-WMA (+0.3%) \u2014 ideal Buy Zone entry in the Industrials sector. P/E 7.9x \u2014 value territory. Opened 24 shares @ $202.18.",
       "pct_vs_wma": 0.34
+    },
+    {
+      "date": "2026-09-14",
+      "action": "BUY",
+      "ticker": "RBLX",
+      "name": "Roblox Corp.",
+      "shares": 98,
+      "price": 50.72,
+      "total": 4970.56,
+      "gain_loss_pct": null,
+      "reason": "Trading 9.2% below its 200-WMA (Undervalued) in the Communication sector \u2014 conviction buy near the average. Opened 98 shares @ $50.72.",
+      "pct_vs_wma": -9.22
     }
   ],
   "inception_date": "2026-08-14",
-  "last_updated": "2026-09-14",
+  "last_updated": "2026-09-15",
   "benchmark_spy_entry": 776.02,
   "daily_values": [
     {
@@ -614,10 +637,17 @@
     },
     {
       "date": "2026-09-14",
-      "total_value": 97118.46,
-      "cash": 11862.94,
-      "invested": 85255.52,
-      "benchmark_value": 98488.44
+      "total_value": 98162.31,
+      "cash": 6892.38,
+      "invested": 91269.93,
+      "benchmark_value": 98117.32
+    },
+    {
+      "date": "2026-09-15",
+      "total_value": 98154.66,
+      "cash": 6892.38,
+      "invested": 91262.28,
+      "benchmark_value": 98049.02
     }
   ]
 }

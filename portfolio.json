@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 7856.499999999998,
+  "cash": 8897.809999999998,
   "holdings": [
     {
       "ticker": "SPGI",
@@ -67,17 +67,6 @@
       "entry_pct_vs_wma": 1.75,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (+1.8%) \u2014 ideal Buy Zone entry in the Healthcare sector. Opened 186 shares @ $26.84."
-    },
-    {
-      "ticker": "SPCX",
-      "name": "SpaceX",
-      "sector": "Industrials",
-      "shares": 35,
-      "entry_price": 140.17,
-      "entry_date": "2026-08-14",
-      "entry_pct_vs_wma": -1.79,
-      "entry_category": "buy_zone",
-      "reason": "Trading right at its 200-WMA (-1.8%) \u2014 ideal Buy Zone entry in the Industrials sector. Fibonacci confluence: \ud83c\udfaf 61.8%. Opened 35 shares @ $140.17."
     },
     {
       "ticker": "PG",
@@ -210,6 +199,17 @@
       "entry_pct_vs_wma": -0.78,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (-0.8%) \u2014 ideal Buy Zone entry in the Technology sector. Fibonacci confluence: \ud83c\udfaf 61.8%. Opened 76 shares @ $65.33."
+    },
+    {
+      "ticker": "O",
+      "name": "Realty Income",
+      "sector": "Real Estate",
+      "shares": 92,
+      "entry_price": 53.77,
+      "entry_date": "2026-10-06",
+      "entry_pct_vs_wma": 1.96,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (+2.0%) \u2014 ideal Buy Zone entry in the Real Estate sector. Opened 92 shares @ $53.77."
     }
   ],
   "trades": [
@@ -464,10 +464,34 @@
       "gain_loss_pct": null,
       "reason": "Trading right at its 200-WMA (-0.8%) \u2014 ideal Buy Zone entry in the Technology sector. Fibonacci confluence: \ud83c\udfaf 61.8%. Opened 76 shares @ $65.33.",
       "pct_vs_wma": -0.78
+    },
+    {
+      "date": "2026-10-06",
+      "action": "SELL",
+      "ticker": "SPCX",
+      "name": "SpaceX",
+      "shares": 35,
+      "price": 171.09,
+      "total": 5988.15,
+      "gain_loss_pct": 22.06,
+      "reason": "SPCX reached Extended territory (+16.8% above 200-WMA). 200-WMA thesis complete. Closed 35 shares for 22.1% profit ($140.17 \u2192 $171.09).",
+      "pct_vs_wma": 16.83
+    },
+    {
+      "date": "2026-10-06",
+      "action": "BUY",
+      "ticker": "O",
+      "name": "Realty Income",
+      "shares": 92,
+      "price": 53.77,
+      "total": 4946.84,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (+2.0%) \u2014 ideal Buy Zone entry in the Real Estate sector. Opened 92 shares @ $53.77.",
+      "pct_vs_wma": 1.96
     }
   ],
   "inception_date": "2026-08-14",
-  "last_updated": "2026-10-05",
+  "last_updated": "2026-10-06",
   "benchmark_spy_entry": 776.02,
   "daily_values": [
     {
@@ -812,6 +836,13 @@
       "cash": 7856.5,
       "invested": 71317.62,
       "benchmark_value": null
+    },
+    {
+      "date": "2026-10-06",
+      "total_value": 97324.51,
+      "cash": 8897.81,
+      "invested": 88426.7,
+      "benchmark_value": 99846.65
     }
   ]
 }

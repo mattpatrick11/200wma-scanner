@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 9866.669999999996,
+  "cash": 5840.739999999997,
   "holdings": [
     {
       "ticker": "SPGI",
@@ -45,17 +45,6 @@
       "entry_pct_vs_wma": 1.5,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (+1.5%) \u2014 ideal Buy Zone entry in the Cons. Discretionary sector. Fibonacci confluence: \ud83c\udfaf 61.8%. P/E 24.0x \u2014 fairly priced. Opened 14 shares @ $338.60."
-    },
-    {
-      "ticker": "PFE",
-      "name": "Pfizer Inc.",
-      "sector": "Healthcare",
-      "shares": 186,
-      "entry_price": 26.84,
-      "entry_date": "2026-08-14",
-      "entry_pct_vs_wma": 1.75,
-      "entry_category": "buy_zone",
-      "reason": "Trading right at its 200-WMA (+1.8%) \u2014 ideal Buy Zone entry in the Healthcare sector. Opened 186 shares @ $26.84."
     },
     {
       "ticker": "PG",
@@ -210,6 +199,28 @@
       "entry_pct_vs_wma": -0.59,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (-0.6%) \u2014 ideal Buy Zone entry in the Technology sector. Opened 53 shares @ $92.98."
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth Group",
+      "sector": "Healthcare",
+      "shares": 11,
+      "entry_price": 421.23,
+      "entry_date": "2026-10-20",
+      "entry_pct_vs_wma": -1.63,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (-1.6%) \u2014 ideal Buy Zone entry in the Healthcare sector. P/E 27.1x \u2014 fairly priced. Opened 11 shares @ $421.23."
+    },
+    {
+      "ticker": "ADUR",
+      "name": "Aduro Clean Technologies",
+      "sector": "Energy",
+      "shares": 496,
+      "entry_price": 10.07,
+      "entry_date": "2026-10-20",
+      "entry_pct_vs_wma": 1.66,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (+1.7%) \u2014 ideal Buy Zone entry in the Energy sector. Opened 496 shares @ $10.07."
     }
   ],
   "trades": [
@@ -512,6 +523,42 @@
       "gain_loss_pct": null,
       "reason": "Trading right at its 200-WMA (-0.6%) \u2014 ideal Buy Zone entry in the Technology sector. Opened 53 shares @ $92.98.",
       "pct_vs_wma": -0.59
+    },
+    {
+      "date": "2026-10-20",
+      "action": "SELL",
+      "ticker": "PFE",
+      "name": "Pfizer Inc.",
+      "shares": 186,
+      "price": 30.12,
+      "total": 5602.32,
+      "gain_loss_pct": 12.22,
+      "reason": "PFE reached Extended territory (+16.5% above 200-WMA). 200-WMA thesis complete. Closed 186 shares for 12.2% profit ($26.84 \u2192 $30.12).",
+      "pct_vs_wma": 16.51
+    },
+    {
+      "date": "2026-10-20",
+      "action": "BUY",
+      "ticker": "UNH",
+      "name": "UnitedHealth Group",
+      "shares": 11,
+      "price": 421.23,
+      "total": 4633.53,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (-1.6%) \u2014 ideal Buy Zone entry in the Healthcare sector. P/E 27.1x \u2014 fairly priced. Opened 11 shares @ $421.23.",
+      "pct_vs_wma": -1.63
+    },
+    {
+      "date": "2026-10-20",
+      "action": "BUY",
+      "ticker": "ADUR",
+      "name": "Aduro Clean Technologies",
+      "shares": 496,
+      "price": 10.07,
+      "total": 4994.72,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (+1.7%) \u2014 ideal Buy Zone entry in the Energy sector. Opened 496 shares @ $10.07.",
+      "pct_vs_wma": 1.66
     }
   ],
   "inception_date": "2026-08-14",
@@ -961,10 +1008,10 @@
     },
     {
       "date": "2026-10-20",
-      "total_value": 98226.1,
-      "cash": 9866.67,
-      "invested": 88359.43,
-      "benchmark_value": 98770.65
+      "total_value": 98842.85,
+      "cash": 5840.74,
+      "invested": 93002.11,
+      "benchmark_value": 99144.35
     }
   ]
 }

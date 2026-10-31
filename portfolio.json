@@ -562,7 +562,7 @@
     }
   ],
   "inception_date": "2026-08-14",
-  "last_updated": "2026-10-30",
+  "last_updated": "2026-10-31",
   "benchmark_spy_entry": 776.02,
   "daily_values": [
     {
@@ -1082,6 +1082,13 @@
       "cash": 5840.74,
       "invested": 92709.83,
       "benchmark_value": 97594.13
+    },
+    {
+      "date": "2026-10-31",
+      "total_value": 98735.13,
+      "cash": 5840.74,
+      "invested": 92894.39,
+      "benchmark_value": 97384.09
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 11308.839999999997,
+  "cash": 6327.499999999996,
   "holdings": [
     {
       "ticker": "SPGI",
@@ -210,6 +210,17 @@
       "entry_pct_vs_wma": 1.66,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (+1.7%) \u2014 ideal Buy Zone entry in the Energy sector. Opened 496 shares @ $10.07."
+    },
+    {
+      "ticker": "BOTZ",
+      "name": "Global X Robotics & AI ETF",
+      "sector": "Thematic",
+      "shares": 161,
+      "entry_price": 30.94,
+      "entry_date": "2026-11-05",
+      "entry_pct_vs_wma": -0.95,
+      "entry_category": "buy_zone",
+      "reason": "Trading right at its 200-WMA (-0.9%) \u2014 ideal Buy Zone entry in the Thematic sector. Opened 161 shares @ $30.94."
     }
   ],
   "trades": [
@@ -560,6 +571,18 @@
       "gain_loss_pct": 15.38,
       "reason": "SHW reached Extended territory (+16.7% above 200-WMA). 200-WMA thesis complete. Closed 15 shares for 15.4% profit ($315.95 \u2192 $364.54).",
       "pct_vs_wma": 16.73
+    },
+    {
+      "date": "2026-11-05",
+      "action": "BUY",
+      "ticker": "BOTZ",
+      "name": "Global X Robotics & AI ETF",
+      "shares": 161,
+      "price": 30.94,
+      "total": 4981.34,
+      "gain_loss_pct": null,
+      "reason": "Trading right at its 200-WMA (-0.9%) \u2014 ideal Buy Zone entry in the Thematic sector. Opened 161 shares @ $30.94.",
+      "pct_vs_wma": -0.95
     }
   ],
   "inception_date": "2026-08-14",
@@ -1121,10 +1144,10 @@
     },
     {
       "date": "2026-11-05",
-      "total_value": 102362.98,
-      "cash": 11308.84,
-      "invested": 91054.14,
-      "benchmark_value": 98813.17
+      "total_value": 99858.03,
+      "cash": 6327.5,
+      "invested": 93530.53,
+      "benchmark_value": 95417.64
     }
   ]
 }

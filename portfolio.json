@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 6327.499999999996,
+  "cash": 7242.469999999997,
   "holdings": [
     {
       "ticker": "SPGI",
@@ -45,17 +45,6 @@
       "entry_pct_vs_wma": 1.5,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (+1.5%) \u2014 ideal Buy Zone entry in the Cons. Discretionary sector. Fibonacci confluence: \ud83c\udfaf 61.8%. P/E 24.0x \u2014 fairly priced. Opened 14 shares @ $338.60."
-    },
-    {
-      "ticker": "PG",
-      "name": "Procter & Gamble",
-      "sector": "Consumer Staples",
-      "shares": 34,
-      "entry_price": 144.2,
-      "entry_date": "2026-08-14",
-      "entry_pct_vs_wma": -2.25,
-      "entry_category": "buy_zone",
-      "reason": "Trading right at its 200-WMA (-2.2%) \u2014 ideal Buy Zone entry in the Consumer Staples sector. P/E 21.8x \u2014 fairly priced. Opened 34 shares @ $144.20."
     },
     {
       "ticker": "TLT",
@@ -221,6 +210,17 @@
       "entry_pct_vs_wma": -0.95,
       "entry_category": "buy_zone",
       "reason": "Trading right at its 200-WMA (-0.9%) \u2014 ideal Buy Zone entry in the Thematic sector. Opened 161 shares @ $30.94."
+    },
+    {
+      "ticker": "CLX",
+      "name": "Clorox Co.",
+      "sector": "Consumer Staples",
+      "shares": 45,
+      "entry_price": 109.91,
+      "entry_date": "2026-11-16",
+      "entry_pct_vs_wma": -9.9,
+      "entry_category": "undervalued",
+      "reason": "Trading 9.9% below its 200-WMA (Undervalued) in the Consumer Staples sector \u2014 conviction buy near the average. P/E 19.8x \u2014 value territory. Opened 45 shares @ $109.91."
     }
   ],
   "trades": [
@@ -583,6 +583,30 @@
       "gain_loss_pct": null,
       "reason": "Trading right at its 200-WMA (-0.9%) \u2014 ideal Buy Zone entry in the Thematic sector. Opened 161 shares @ $30.94.",
       "pct_vs_wma": -0.95
+    },
+    {
+      "date": "2026-11-16",
+      "action": "SELL",
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "shares": 34,
+      "price": 172.38,
+      "total": 5860.92,
+      "gain_loss_pct": 19.54,
+      "reason": "PG reached Extended territory (+16.4% above 200-WMA). 200-WMA thesis complete. Closed 34 shares for 19.5% profit ($144.20 \u2192 $172.38).",
+      "pct_vs_wma": 16.37
+    },
+    {
+      "date": "2026-11-16",
+      "action": "BUY",
+      "ticker": "CLX",
+      "name": "Clorox Co.",
+      "shares": 45,
+      "price": 109.91,
+      "total": 4945.95,
+      "gain_loss_pct": null,
+      "reason": "Trading 9.9% below its 200-WMA (Undervalued) in the Consumer Staples sector \u2014 conviction buy near the average. P/E 19.8x \u2014 value territory. Opened 45 shares @ $109.91.",
+      "pct_vs_wma": -9.9
     }
   ],
   "inception_date": "2026-08-14",
@@ -1221,10 +1245,10 @@
     },
     {
       "date": "2026-11-16",
-      "total_value": 101670.12,
-      "cash": 6327.5,
-      "invested": 95342.62,
-      "benchmark_value": 97210.12
+      "total_value": 100657.89,
+      "cash": 7242.47,
+      "invested": 93415.42,
+      "benchmark_value": 95969.18
     }
   ]
 }

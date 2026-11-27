@@ -1,6 +1,6 @@
 {
   "starting_capital": 100000.0,
-  "cash": 7242.469999999997,
+  "cash": 7828.6299999999965,
   "holdings": [
     {
       "ticker": "SPGI",
@@ -157,17 +157,6 @@
       "reason": "Trading right at its 200-WMA (-0.8%) \u2014 ideal Buy Zone entry in the Technology sector. Fibonacci confluence: \ud83c\udfaf 61.8%. Opened 76 shares @ $65.33."
     },
     {
-      "ticker": "O",
-      "name": "Realty Income",
-      "sector": "Real Estate",
-      "shares": 92,
-      "entry_price": 53.77,
-      "entry_date": "2026-10-06",
-      "entry_pct_vs_wma": 1.96,
-      "entry_category": "buy_zone",
-      "reason": "Trading right at its 200-WMA (+2.0%) \u2014 ideal Buy Zone entry in the Real Estate sector. Opened 92 shares @ $53.77."
-    },
-    {
       "ticker": "SE",
       "name": "Sea Limited",
       "sector": "Technology",
@@ -221,6 +210,17 @@
       "entry_pct_vs_wma": -9.9,
       "entry_category": "undervalued",
       "reason": "Trading 9.9% below its 200-WMA (Undervalued) in the Consumer Staples sector \u2014 conviction buy near the average. P/E 19.8x \u2014 value territory. Opened 45 shares @ $109.91."
+    },
+    {
+      "ticker": "CCI",
+      "name": "Crown Castle Intl.",
+      "sector": "Real Estate",
+      "shares": 59,
+      "entry_price": 84.56,
+      "entry_date": "2026-11-27",
+      "entry_pct_vs_wma": -6.25,
+      "entry_category": "undervalued",
+      "reason": "Trading 6.2% below its 200-WMA (Undervalued) in the Real Estate sector \u2014 conviction buy near the average. Opened 59 shares @ $84.56."
     }
   ],
   "trades": [
@@ -607,6 +607,30 @@
       "gain_loss_pct": null,
       "reason": "Trading 9.9% below its 200-WMA (Undervalued) in the Consumer Staples sector \u2014 conviction buy near the average. P/E 19.8x \u2014 value territory. Opened 45 shares @ $109.91.",
       "pct_vs_wma": -9.9
+    },
+    {
+      "date": "2026-11-27",
+      "action": "SELL",
+      "ticker": "O",
+      "name": "Realty Income",
+      "shares": 92,
+      "price": 60.6,
+      "total": 5575.2,
+      "gain_loss_pct": 12.7,
+      "reason": "O reached Extended territory (+15.1% above 200-WMA). 200-WMA thesis complete. Closed 92 shares for 12.7% profit ($53.77 \u2192 $60.60).",
+      "pct_vs_wma": 15.06
+    },
+    {
+      "date": "2026-11-27",
+      "action": "BUY",
+      "ticker": "CCI",
+      "name": "Crown Castle Intl.",
+      "shares": 59,
+      "price": 84.56,
+      "total": 4989.04,
+      "gain_loss_pct": null,
+      "reason": "Trading 6.2% below its 200-WMA (Undervalued) in the Real Estate sector \u2014 conviction buy near the average. Opened 59 shares @ $84.56.",
+      "pct_vs_wma": -6.25
     }
   ],
   "inception_date": "2026-08-14",
@@ -1322,10 +1346,10 @@
     },
     {
       "date": "2026-11-27",
-      "total_value": 98631.86,
-      "cash": 7242.47,
-      "invested": 91389.39,
-      "benchmark_value": 92355.87
+      "total_value": 99861.95,
+      "cash": 7828.63,
+      "invested": 92033.32,
+      "benchmark_value": 93565.89
     }
   ]
 }
